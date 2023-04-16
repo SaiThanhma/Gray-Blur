@@ -39,7 +39,7 @@ std::unique_ptr<Bitmap> readFile(const char* path){
 }
 
 bool writeFile(const char* path, uint8_t* buffer, size_t size, long int offset, int whence){
-    FILE* file = std::fopen(path, "w");
+    FILE* file = std::fopen(path, "r+");
     if(!file) {
         std::perror("File opening failed");
         return false;
@@ -56,7 +56,7 @@ bool writeFile(const char* path, uint8_t* buffer, size_t size, long int offset, 
         return false;
     }
 
-    
+    fseek(file, offset, whence);
     fwrite(buffer, sizeof(uint8_t), size, file);
     fclose(file);
 
