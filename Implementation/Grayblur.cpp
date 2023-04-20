@@ -28,16 +28,16 @@ void blur(const uint8_t* img_in, size_t width, size_t height, uint8_t* img_out){
     for (uint32_t i = 1; i < height - 1; ++i){
         for(uint32_t j = 3; j < width * 3 - 3; j += 3){
             img_out[i * width * 3 + j] = gaussianblur(img_in[i * width * 3 + j + (width - 1) * 3], img_in[i * width * 3 + j + width * 3], img_in[i * width * 3 + j + (width + 1) * 3], img_in[i * width * 3 + j - 3], img_in[i * width * 3 + j], img_in[i * width * 3 + j + 3], img_in[i * width * 3 + j - (width - 1) * 3], img_in[i * width * 3 + j - width * 3], img_in[i * width * 3 + j - (width + 1) * 3]);
-            img_out[i * width * 3 + j + 1] = gaussianblur(img_in[i * width * 3 + j + (width - 1) * 3 + 1], img_in[i * width * 3 + j + width * 3 + 1], img_in[i * width * 3 + j + (width + 1) * 3 + 1], img_in[i * width * 3 + j - 3 + 1], img_in[i * width * 3 + j + 1], img_in[i * width * 3 + j + 3 + 1], img_in[i * width * 3 + j - (width - 1) * 3 + 1], img_in[i * width * 3 + j - width * 3 + 1], img_in[i * width * 3 + j - (width + 1) * 3] + 1);
-            img_out[i * width * 3 + j + 2] = gaussianblur(img_in[i * width * 3 + j + (width - 1) * 3 + 2], img_in[i * width * 3 + j + width * 3 + 2], img_in[i * width * 3 + j + (width + 1) * 3 + 2], img_in[i * width * 3 + j - 3 + 2], img_in[i * width * 3 + j + 2], img_in[i * width * 3 + j + 3 + 2], img_in[i * width * 3 + j - (width - 1) * 3 + 2], img_in[i * width * 3 + j - width * 3 + 2], img_in[i * width * 3 + j - (width + 1) * 3] + 2);
+            img_out[i * width * 3 + j + 1] = gaussianblur(img_in[i * width * 3 + j + (width - 1) * 3 + 1], img_in[i * width * 3 + j + width * 3 + 1], img_in[i * width * 3 + j + (width + 1) * 3 + 1], img_in[i * width * 3 + j - 3 + 1], img_in[i * width * 3 + j + 1], img_in[i * width * 3 + j + 3 + 1], img_in[i * width * 3 + j - (width - 1) * 3 + 1], img_in[i * width * 3 + j - width * 3 + 1], img_in[i * width * 3 + j - (width + 1) * 3 + 1]);
+            img_out[i * width * 3 + j + 2] = gaussianblur(img_in[i * width * 3 + j + (width - 1) * 3 + 2], img_in[i * width * 3 + j + width * 3 + 2], img_in[i * width * 3 + j + (width + 1) * 3 + 2], img_in[i * width * 3 + j - 3 + 2], img_in[i * width * 3 + j + 2], img_in[i * width * 3 + j + 3 + 2], img_in[i * width * 3 + j - (width - 1) * 3 + 2], img_in[i * width * 3 + j - width * 3 + 2], img_in[i * width * 3 + j - (width + 1) * 3 + 2]);
         }
     }
 
     //bottom
     for(uint32_t j = 3; j < width * 3 - 3; j += 3){
         img_out[j] = gaussianblur(img_in[j + (width - 1) * 3], img_in[j + width * 3], img_in[j + (width + 1) * 3], img_in[j - 3], img_in[j], img_in[j + 3], 0, 0, 0);
-        img_out[j + 1] = gaussianblur(img_in[j + (width - 1) * 3 + 1], img_in[j + width * 3 + 1], img_in[j + (width + 1) * 3 + 1], img_in[j - 3 + 1], img_in[j + 1], img_in[j + 3 + 1], 0, 0, 0);
-        img_out[j + 2] = gaussianblur(img_in[j + (width - 1) * 3 + 2], img_in[j + width * 3 + 2], img_in[j + (width + 1) * 3 + 2], img_in[j - 3 + 2], img_in[j + 2], img_in[j + 3 + 2], 0, 0, 0);
+        img_out[j + 1] = gaussianblur(img_in[j + 1 +(width - 1) * 3], img_in[j + 1 + width * 3], img_in[j + 1 + (width + 1) * 3], img_in[j - 3 + 1], img_in[j + 1], img_in[j + 3 + 1], 0, 0, 0);
+        img_out[j + 2] = gaussianblur(img_in[j + 2 +(width - 1) * 3], img_in[j + 2 + width * 3], img_in[j + 2 + (width + 1) * 3], img_in[j - 3 + 2], img_in[j + 2], img_in[j + 3 + 2], 0, 0, 0);
     }
 
     //top
