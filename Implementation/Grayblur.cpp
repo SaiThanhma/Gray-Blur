@@ -3,6 +3,7 @@
 
 
 void grayblur(const uint8_t* img_in, size_t width, size_t height, uint8_t* img_out){
+    gray(img_in, width * height, img_out);
 
 }
 
