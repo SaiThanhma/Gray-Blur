@@ -1,5 +1,5 @@
 
-add_library(filter Grayblur.cpp Grayblur.h)
+add_library(filter Grayblur.cpp Sobel_operator.cpp Grayblur.h Sobel_operator.h Convolution.h Convolution.cpp)
 
 target_include_directories(filter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
