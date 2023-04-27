@@ -1,7 +1,8 @@
 
-add_library(filter Grayblur.cpp Sobel_operator.cpp Grayblur.h Sobel_operator.h Convolution.h Convolution.cpp)
+add_library(filter Grayblur.cpp Grayblur.h Sobel_operator.cpp  Sobel_operator.h Convolution.cpp Convolution.h)
 
 target_include_directories(filter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(filter mymath)
 
 target_compile_options(
     bitmap

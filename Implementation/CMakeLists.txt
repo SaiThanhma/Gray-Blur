@@ -3,9 +3,13 @@ project(grayblur)
 
 set(CMAKE_CXX_STANDARD 20)
 add_subdirectory(Bitmap)
-add_executable(main main.cpp Grayblur.cpp)
+add_subdirectory(Math)
+add_subdirectory(Filter)
 
-target_link_libraries(main bitmap)
+add_executable(main main.cpp)
+
+target_link_libraries(main bitmap filter mymath)
+
 target_compile_options(
     main
     PRIVATE

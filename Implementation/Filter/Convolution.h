@@ -1,31 +1,32 @@
+#include "Mymath.h"
 #include <cmath>
 #include <array>
-#include <iostream>
 
-float hg(int i, int j, int meani, int meanj, int sigma){
-    return exp(-0.5 *( pow(i - meani, 2.0) + pow(j - meanj, 2.0))/ (sigma * sigma));
+constexpr float hg(int i, int j, int meani, int meanj, int sigma){
+
+    return mymath::exp(-0.5 * ((mymath::pow(i - meani, 2) + mymath::pow(j - meanj, 2)) / mymath::pow(sigma, 2)));
 }
 
 template<unsigned M, unsigned N, unsigned sigma>
-std::array<std::array<float, N>, M>  gaussian_filter(){
+constexpr std::array<float, M * N> gaussian_filter(){
 
-    std::array<std::array<float, N>, M> kernel;
-    float sum = 0;
-    float tmp = 0;
+    std::array<float, M * N> kernel;
+    float sum = 0.0;
+    float tmp = 0.0;
     int meani = M /2;
     int meanj = N /2;
+    int pos = 0;
 
     for(int i = 0; i < M; ++i){
-        for(int j = 0; j < N; ++j){
+        for(int j = 0; j < N; ++j, ++pos){
             tmp = hg(i, j, meani, meanj, sigma);
             sum += tmp; 
-            kernel.at(i).at(j) = tmp;
+            kernel.at(pos) = tmp;
         }
     }
-    
-    for(int i = 0; i < M; ++i){
-        for(int j = 0; j < N; ++j){
-            kernel.at(i).at(j) /= sum;
+    if(sum != 0.0){
+        for(int i = 0; i < kernel.size(); ++i){
+            kernel.at(i) /= sum;
         }
     }
     
