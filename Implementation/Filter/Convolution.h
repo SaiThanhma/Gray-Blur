@@ -1,5 +1,4 @@
 #include "Mymath.h"
-#include <cmath>
 #include <array>
 
 constexpr float hg(int i, int j, int meani, int meanj, int sigma){

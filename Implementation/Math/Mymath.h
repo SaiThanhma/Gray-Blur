@@ -7,7 +7,7 @@ namespace mymath{
     constexpr T pow(T base, int exponent);
 
     template<typename T = double>
-    T exp(double value);
+    constexpr T exp(double value);
 
 
 
@@ -22,7 +22,7 @@ namespace mymath{
     }
 
     template<typename T>
-    T exp(double value){
+    constexpr T exp(double value){
         double res = 1;
         for(int i = 1; i < 21; ++i){
             res += pow(value, i)/factorial<long>(i);
