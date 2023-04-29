@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cinttypes>
+#include <memory>
 
 void grayblur(const uint8_t* img_in, size_t width, size_t height, uint8_t* img_out);
 void gray(const uint8_t* img_in, size_t width, size_t height, uint8_t* img_out);
