@@ -21,23 +21,14 @@ constexpr double hg(int i, int j, int meani, int meanj, int sigma);
 constexpr std::pair<int, int> mirror(int posx, int posy, int endx, int endy);
 
 template <unsigned kernelheight, unsigned kernelwidth>
-constexpr double kernelcalc(const uint8_t *img_in, size_t width, size_t height, int pos, std::array<double, kernelheight * kernelwidth> kernel);
+constexpr double kernelcalc(const uint8_t *buf, std::array<double, kernelheight * kernelwidth> kernel);
 
 template <unsigned kernelheight, unsigned kernelwidth>
-constexpr double kernelcalc(const uint8_t *img_in, size_t width, size_t height, int pos, std::array<double, kernelheight * kernelwidth> kernel)
+constexpr double kernelcalc(const uint8_t *buf, std::array<double, kernelheight * kernelwidth> kernel)
 {
     double sum = 0;
-    int l = 0;
-    int kernelwidthradius = (kernelwidth - 1) / 2;
-    int kernelheightradius = (kernelheight - 1) / 2;
-    int shift = (pos - kernelwidthradius * 3) + width * 3 * kernelheightradius;
-
-    for (int i = 0; i < kernelheight; ++i, shift -= 3 * width)
-    {
-        for (int j = 0; j < kernelwidth; ++j, ++l)
-        {
-            sum += static_cast<double>(img_in[shift + j * 3]) * kernel.at(l);
-        }
+    for(int i = 0; i < kernel.size(); ++i){
+        sum += buf[i] * kernel.at(i);
     }
 
     return sum;
@@ -47,8 +38,10 @@ template <unsigned kernelheight, unsigned kernelwidth>
 void convolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel)
 {
     std::reverse(kernel.begin(), kernel.end());
+    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(kernelheight * kernelwidth);
     int kernelwidthradius = (kernelwidth - 1) / 2;
     int kernelheightradius = (kernelheight - 1) / 2;
+
 
     for (int i = kernelheightradius; i < height - kernelheightradius; ++i)
     {
@@ -56,7 +49,19 @@ void convolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *im
         {
             for (int k = 0; k < 3; ++k)
             {
-                img_out[(i * width + j) * 3 + k] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(img_in, width, height, (i * width + j) * 3 + k, kernel));
+                int pos = (i * width + j) * 3 + k;
+                int shift = (pos - kernelwidthradius * 3) + width * 3 * kernelheightradius;
+                int index = 0;
+
+                for (int l = 0; l < kernelheight; ++l, shift -= 3 * width)
+                {
+                    for (int m = 0; m < kernelwidth; ++m, ++index)
+                    {
+                        buf[index] = img_in[shift + m * 3];
+                    }
+                }
+
+                img_out[pos] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
             }
         }
     }
@@ -94,15 +99,9 @@ void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t 
             for (int m = 0; m < 3; ++m){
                 for (int n = 0; n < indicies.size(); ++n){
                     buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
-                    if(i == 0 && j == 0 && m == 0){
-                        std::cout << (indicies.at(n).first * width + indicies.at(n).second) * 3 + m << std::endl;
-                    }
                 }
-                double sum = 0;
-                for(int o = 0; o < kernel.size(); ++o){
-                    sum += buf[o] * kernel.at(o);
-                }
-                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(sum);
+
+                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
             }
         }
     }
@@ -119,11 +118,7 @@ void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t 
                 for (int n = 0; n < indicies.size(); ++n){
                     buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
                 }
-                double sum = 0;
-                for(int o = 0; o < kernel.size(); ++o){
-                    sum += buf[o] * kernel.at(o);
-                }
-                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(sum);
+                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
             }
         }
     }
@@ -140,11 +135,7 @@ void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t 
                 for (int n = 0; n < indicies.size(); ++n){
                     buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
                 }
-                double sum = 0;
-                for(int o = 0; o < kernel.size(); ++o){
-                    sum += buf[o] * kernel.at(o);
-                }
-                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(sum);
+                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
             }
         }
     }
@@ -161,11 +152,7 @@ void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t 
                 for (int n = 0; n < indicies.size(); ++n){
                     buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
                 }
-                double sum = 0;
-                for(int o = 0; o < kernel.size(); ++o){
-                    sum += buf[o] * kernel.at(o);
-                }
-                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(sum);
+                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
             }
         }
     }
