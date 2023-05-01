@@ -3,9 +3,9 @@
 #include <array>
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <tuple>
 #include <memory>
+#include <iostream>
 
 template <unsigned kernelheight, unsigned kernelwidth>
 void convolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel);
@@ -72,7 +72,6 @@ void convolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *im
 template <unsigned kernelheight, unsigned kernelwidth>
 void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel)
 {
-    std::reverse(kernel.begin(), kernel.end());
     std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(kernelheight * kernelwidth);
     std::array<std::pair<int, int>, kernelheight * kernelwidth> indicies;
 
@@ -93,12 +92,21 @@ void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t 
             for (int k = starty; k <= endy; ++k){
                 for (int l = startx; l <= endx; ++l, ++pos){
                     indicies.at(pos) = mirror(i + k, j + l, height - 1, width - 1);
+                    
+                    if(i == 11 && j ==0){
+//                    std::cout << "First: " << indicies.at(pos).first << "   " << " Second: " << indicies.at(pos).second << std::endl;
+                    //std::cout << "i + k: " << i + k << "   " << " j + l: " << j + l << std::endl;
+                    }
+                    
                 }
             }
-
             for (int m = 0; m < 3; ++m){
                 for (int n = 0; n < indicies.size(); ++n){
                     buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
+                    if(i == 11 && j == 0 && m == 0){
+//                    std::cout << "T: " << (indicies.at(n).first * width + indicies.at(n).second) * 3 + m << std::endl;
+                    
+                    }
                 }
 
                 img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
@@ -184,8 +192,8 @@ constexpr std::array<double, kernelheight * kernelwidth> gaussian_filter()
     std::array<double, kernelheight * kernelwidth> kernel;
     double sum = 0.0;
     double tmp = 0.0;
-    int meani = kernelwidth / 2;
-    int meanj = kernelheight / 2;
+    int meani = kernelheight / 2;
+    int meanj = kernelwidth / 2;
     int pos = 0;
 
     for (int i = 0; i < kernelheight; ++i)
@@ -197,9 +205,11 @@ constexpr std::array<double, kernelheight * kernelwidth> gaussian_filter()
             kernel.at(pos) = tmp;
         }
     }
-    for (int i = 0; i < kernel.size(); ++i)
-    {
-        kernel.at(i) /= sum;
+    if(sum != 0.0){
+        for (int i = 0; i < kernel.size(); ++i)
+        {
+            kernel.at(i) /= sum;
+        }
     }
 
     return kernel;
