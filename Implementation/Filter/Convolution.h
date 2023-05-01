@@ -1,68 +1,224 @@
-#include "Mymath.h"
 #include <cstdio>
 #include <cinttypes>
 #include <array>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <tuple>
+#include <memory>
 
+template <unsigned kernelheight, unsigned kernelwidth>
+void convolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel);
 
-namespace Convolution{
+template <unsigned kernelheight, unsigned kernelwidth>
+void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel);
 
-    template<unsigned M, unsigned N, unsigned sigma>
-    constexpr std::array<float, M * N> gaussian_filter();
+template <unsigned kernelheight, unsigned kernelwidth, unsigned sigma>
+constexpr std::array<double, kernelheight * kernelwidth> gaussian_filter();
 
-    constexpr float hg(int i, int j, int meani, int meanj, int sigma);
+constexpr double hg(int i, int j, int meani, int meanj, int sigma);
 
-    template<unsigned kernelwidth, unsigned kernelheight, std::array<float, kernelwidth * kernelheight> kernel>
-    class Convolution {
-        void convolution(const uint8_t* img_in, size_t width, size_t height, uint8_t* img_out);  
-    };
+constexpr std::pair<int, int> mirror(int posx, int posy, int endx, int endy);
 
+template <unsigned kernelheight, unsigned kernelwidth>
+constexpr double kernelcalc(const uint8_t *img_in, size_t width, size_t height, int pos, std::array<double, kernelheight * kernelwidth> kernel);
 
-    template<unsigned M, unsigned N, unsigned sigma>
-    constexpr std::array<float, M * N> gaussian_filter(){
+template <unsigned kernelheight, unsigned kernelwidth>
+constexpr double kernelcalc(const uint8_t *img_in, size_t width, size_t height, int pos, std::array<double, kernelheight * kernelwidth> kernel)
+{
+    double sum = 0;
+    int l = 0;
+    int kernelwidthradius = (kernelwidth - 1) / 2;
+    int kernelheightradius = (kernelheight - 1) / 2;
+    int shift = (pos - kernelwidthradius * 3) + width * 3 * kernelheightradius;
 
-        std::array<float, M * N> kernel;
-        float sum = 0.0;
-        float tmp = 0.0;
-        int meani = M /2;
-        int meanj = N /2;
-        int pos = 0;
-
-        for(int i = 0; i < M; ++i){
-            for(int j = 0; j < N; ++j, ++pos){
-                tmp = hg(i, j, meani, meanj, sigma);
-                sum += tmp; 
-                kernel.at(pos) = tmp;
-            }
+    for (int i = 0; i < kernelheight; ++i, shift -= 3 * width)
+    {
+        for (int j = 0; j < kernelwidth; ++j, ++l)
+        {
+            sum += static_cast<double>(img_in[shift + j * 3]) * kernel.at(l);
         }
-        if(sum != 0.0){
-            for(int i = 0; i < kernel.size(); ++i){
-                kernel.at(i) /= sum;
-            }
-        }
-        
-        return kernel;
     }
 
-    constexpr float hg(int i, int j, int meani, int meanj, int sigma){
-        return mymath::exp(-0.5 * ((mymath::pow(i - meani, 2) + mymath::pow(j - meanj, 2)) / mymath::pow(sigma, 2)));
-    }
-
-
-    template<unsigned kernelheight, std::array<float, kernelheight> kernel>
-    class Convolution<1, kernelheight, kernel> {
-        void convolution(const uint8_t* img_in, size_t width, size_t height, uint8_t* img_out){
-            
-        }
-    };
-
-    template<unsigned kernelwidth, std::array<float, kernelwidth> kernel>
-    class Convolution<kernelwidth, 1, kernel> {
-        void convolution(const uint8_t* img_in, size_t width, size_t height, uint8_t* img_out){
-
-        }
-    };
-
-
-
+    return sum;
 }
 
+template <unsigned kernelheight, unsigned kernelwidth>
+void convolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel)
+{
+    std::reverse(kernel.begin(), kernel.end());
+    int kernelwidthradius = (kernelwidth - 1) / 2;
+    int kernelheightradius = (kernelheight - 1) / 2;
+
+    for (int i = kernelheightradius; i < height - kernelheightradius; ++i)
+    {
+        for (int j = kernelwidthradius; j < width - kernelwidthradius; ++j)
+        {
+            for (int k = 0; k < 3; ++k)
+            {
+                img_out[(i * width + j) * 3 + k] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(img_in, width, height, (i * width + j) * 3 + k, kernel));
+            }
+        }
+    }
+
+    borderhandling<kernelheight, kernelwidth>(img_in, width, height, img_out, kernel);
+}
+
+template <unsigned kernelheight, unsigned kernelwidth>
+void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel)
+{
+    std::reverse(kernel.begin(), kernel.end());
+    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(kernelheight * kernelwidth);
+    std::array<std::pair<int, int>, kernelheight * kernelwidth> indicies;
+
+    int starty = -static_cast<int>((kernelheight + 1) / 2 - 1);
+    int endy = (kernelheight + 1) / 2 - 1;
+
+    int startx = -static_cast<int>((kernelwidth + 1) / 2 - 1);
+    int endx = (kernelwidth + 1) / 2 - 1;
+
+    int pos = 0;
+    int counter = 0;
+
+    int kernelwidthradius = (kernelwidth - 1) / 2;
+    int kernelheightradius = (kernelheight - 1) / 2;
+
+    for (int i = 0; i < kernelheightradius; ++i){
+        for (int j = 0; j < width; ++j, pos = 0){
+            for (int k = starty; k <= endy; ++k){
+                for (int l = startx; l <= endx; ++l, ++pos){
+                    indicies.at(pos) = mirror(i + k, j + l, height - 1, width - 1);
+                }
+            }
+
+            for (int m = 0; m < 3; ++m){
+                for (int n = 0; n < indicies.size(); ++n){
+                    buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
+                    if(i == 0 && j == 0 && m == 0){
+                        std::cout << (indicies.at(n).first * width + indicies.at(n).second) * 3 + m << std::endl;
+                    }
+                }
+                double sum = 0;
+                for(int o = 0; o < kernel.size(); ++o){
+                    sum += buf[o] * kernel.at(o);
+                }
+                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(sum);
+            }
+        }
+    }
+    
+    for(int i = (height - kernelheightradius); i < height; ++i){
+        for(int j = 0; j < width; ++j,  pos = 0){
+            for (int k = starty; k <= endy; ++k){
+                for (int l = startx; l <= endx; ++l, ++pos){
+                    indicies.at(pos) = mirror(i + k, j + l, height - 1, width - 1);
+                }
+            }
+
+            for (int m = 0; m < 3; ++m){
+                for (int n = 0; n < indicies.size(); ++n){
+                    buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
+                }
+                double sum = 0;
+                for(int o = 0; o < kernel.size(); ++o){
+                    sum += buf[o] * kernel.at(o);
+                }
+                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(sum);
+            }
+        }
+    }
+
+    for(int i = kernelheightradius; i < (height - kernelheightradius); ++i){
+        for(int j = 0; j < kernelwidthradius; ++j, pos = 0){
+            for (int k = starty; k <= endy; ++k){
+                for (int l = startx; l <= endx; ++l, ++pos){
+                    indicies.at(pos) = mirror(i + k, j + l, height - 1, width - 1);
+                }
+            }
+
+            for (int m = 0; m < 3; ++m){
+                for (int n = 0; n < indicies.size(); ++n){
+                    buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
+                }
+                double sum = 0;
+                for(int o = 0; o < kernel.size(); ++o){
+                    sum += buf[o] * kernel.at(o);
+                }
+                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(sum);
+            }
+        }
+    }
+
+    for(int i = kernelheightradius; i < (height - kernelheightradius); ++i){
+        for(int j = width - kernelwidthradius; j < width; ++j, pos = 0){
+            for (int k = starty; k <= endy; ++k){
+                for (int l = startx; l <= endx; ++l, ++pos){
+                    indicies.at(pos) = mirror(i + k, j + l, height - 1, width - 1);
+                }
+            }
+
+            for (int m = 0; m < 3; ++m){
+                for (int n = 0; n < indicies.size(); ++n){
+                    buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
+                }
+                double sum = 0;
+                for(int o = 0; o < kernel.size(); ++o){
+                    sum += buf[o] * kernel.at(o);
+                }
+                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(sum);
+            }
+        }
+    }
+        
+}
+constexpr std::pair<int, int> mirror(int posy, int posx, int endy, int endx)
+{
+    if ((posx >= 0 && posx <= endx) && (posy >= 0 && posy <= endy))
+    {
+        return std::make_pair(posy, posx);
+    }
+    int distancex = posx < 0 ? -posx : posx;
+    int repx = distancex / endx;
+    int modx = distancex % endx;
+    int index = repx % 2 == 0 ? modx : endx - modx;
+
+    int distancey = posy < 0 ? -posy : posy;
+    int repy = distancey / endy;
+    int mody = distancey % endy;
+    int indey = repy % 2 == 0 ? mody : endy - mody;
+
+    return std::make_pair(indey, index);
+}
+
+template <unsigned kernelheight, unsigned kernelwidth, unsigned sigma>
+constexpr std::array<double, kernelheight * kernelwidth> gaussian_filter()
+{
+
+    std::array<double, kernelheight * kernelwidth> kernel;
+    double sum = 0.0;
+    double tmp = 0.0;
+    int meani = kernelwidth / 2;
+    int meanj = kernelheight / 2;
+    int pos = 0;
+
+    for (int i = 0; i < kernelheight; ++i)
+    {
+        for (int j = 0; j < kernelwidth; ++j, ++pos)
+        {
+            tmp = hg(i, j, meani, meanj, sigma);
+            sum += tmp;
+            kernel.at(pos) = tmp;
+        }
+    }
+    for (int i = 0; i < kernel.size(); ++i)
+    {
+        kernel.at(i) /= sum;
+    }
+
+    return kernel;
+}
+
+constexpr double hg(int i, int j, int meani, int meanj, int sigma)
+{
+    return std::exp(-0.5 * ((i - meani) * (i - meani) + (j - meanj) * (j - meanj)) / (sigma * sigma));
+}
