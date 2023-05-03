@@ -1,8 +1,6 @@
 #include <cstdio>
 #include <cinttypes>
-#include <array>
 #include <algorithm>
-#include <cmath>
 #include <tuple>
 #include <memory>
 
@@ -19,11 +17,6 @@ template <unsigned kernelheight, unsigned kernelwidth>
 constexpr double kernelcalc(const uint8_t *buf, std::array<double, kernelheight * kernelwidth> kernel);
 
 constexpr std::pair<int, int> mirrorindex(int posx, int posy, int endx, int endy);
-
-template <unsigned kernelheight, unsigned kernelwidth, unsigned sigma>
-constexpr std::array<double, kernelheight * kernelwidth> gaussian_filter();
-
-constexpr double hg(int i, int j, int meani, int meanj, int sigma);
 
 template <unsigned kernelheight, unsigned kernelwidth>
 void convolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel){
@@ -178,39 +171,4 @@ constexpr std::pair<int, int> mirrorindex(int posy, int posx, int endy, int endx
     int index = repx % 2 == 0 ? modx : endx - modx;
 
     return std::make_pair(indey, index);
-}
-
-template <unsigned kernelheight, unsigned kernelwidth, unsigned sigma>
-constexpr std::array<double, kernelheight * kernelwidth> gaussian_filter()
-{
-
-    std::array<double, kernelheight * kernelwidth> kernel;
-    double sum = 0.0;
-    double tmp = 0.0;
-    int meani = kernelheight / 2;
-    int meanj = kernelwidth / 2;
-    int pos = 0;
-
-    for (int i = 0; i < kernelheight; ++i)
-    {
-        for (int j = 0; j < kernelwidth; ++j, ++pos)
-        {
-            tmp = hg(i, j, meani, meanj, sigma);
-            sum += tmp;
-            kernel.at(pos) = tmp;
-        }
-    }
-    if(sum != 0.0){
-        for (int i = 0; i < kernel.size(); ++i)
-        {
-            kernel.at(i) /= sum;
-        }
-    }
-
-    return kernel;
-}
-
-constexpr double hg(int i, int j, int meani, int meanj, int sigma)
-{
-    return std::exp(-0.5 * ((i - meani) * (i - meani) + (j - meanj) * (j - meanj)) / (sigma * sigma));
 }
