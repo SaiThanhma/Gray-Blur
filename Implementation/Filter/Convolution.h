@@ -1,46 +1,47 @@
 #include <cstdio>
-#include <cinttypes>
 #include <algorithm>
 #include <tuple>
 #include <memory>
 
-template <unsigned kernelheight, unsigned kernelwidth>
-void convolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel);
+template <typename T, unsigned kernelheight, unsigned kernelwidth>
+void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel);
 
-template <unsigned kernelheight, unsigned kernelwidth>
-void innerconvolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel);
+template <typename T, unsigned kernelheight, unsigned kernelwidth>
+void innerconvolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel);
 
-template <unsigned kernelheight, unsigned kernelwidth>
-void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel);
+template <typename T, unsigned kernelheight, unsigned kernelwidth>
+void borderhandling(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel);
 
-template <unsigned kernelheight, unsigned kernelwidth>
-constexpr double kernelcalc(const uint8_t *buf, std::array<double, kernelheight * kernelwidth> kernel);
+template <typename T, unsigned kernelheight, unsigned kernelwidth>
+constexpr float kernelcalc(const T *buffer, std::array<float, kernelheight * kernelwidth> kernel);
 
 constexpr std::pair<int, int> mirrorindex(int posx, int posy, int endx, int endy);
 
-template <unsigned kernelheight, unsigned kernelwidth>
-void convolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel){
+
+
+template <typename T, unsigned kernelheight, unsigned kernelwidth>
+void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel){
     std::reverse(kernel.begin(), kernel.end());
-    innerconvolution<kernelheight, kernelwidth>(img_in, width, height, img_out, kernel);
-    borderhandling<kernelheight, kernelwidth>(img_in, width, height, img_out, kernel);
+    innerconvolution<T, kernelheight, kernelwidth>(img_in, width, height, channels, img_out, kernel);
+    borderhandling<T, kernelheight, kernelwidth>(img_in, width, height, channels, img_out, kernel);
 }
 
 
-template <unsigned kernelheight, unsigned kernelwidth>
-constexpr double kernelcalc(const uint8_t *buf, std::array<double, kernelheight * kernelwidth> kernel)
+template <typename T, unsigned kernelheight, unsigned kernelwidth>
+constexpr float kernelcalc(const T *buffer, std::array<float, kernelheight * kernelwidth> kernel)
 {
-    double sum = 0;
+    float sum = 0;
     for(int i = 0; i < kernel.size(); ++i){
-        sum += buf[i] * kernel.at(i);
+        sum += static_cast<float>(buffer[i]) * kernel.at(i);
     }
 
     return sum;
 }
 
-template <unsigned kernelheight, unsigned kernelwidth>
-void innerconvolution(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel)
+template <typename T, unsigned kernelheight, unsigned kernelwidth>
+void innerconvolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel)
 {
-    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(kernelheight * kernelwidth);
+    std::unique_ptr<T[]> buffer = std::make_unique<T[]>(kernelheight * kernelwidth);
     int kernelwidthradius = (kernelwidth - 1) / 2;
     int kernelheightradius = (kernelheight - 1) / 2;
 
@@ -49,30 +50,30 @@ void innerconvolution(const uint8_t *img_in, size_t width, size_t height, uint8_
     {
         for (int j = kernelwidthradius; j < width - kernelwidthradius; ++j)
         {
-            for (int k = 0; k < 3; ++k)
+            for (int k = 0; k < channels; ++k)
             {
-                int pos = (i * width + j) * 3 + k;
-                int shift = (pos - kernelwidthradius * 3) + width * 3 * kernelheightradius;
+                int pos = (i * width + j) * channels + k;
+                int shift = (pos - kernelwidthradius * channels) + width * channels * kernelheightradius;
                 int index = 0;
 
-                for (int l = 0; l < kernelheight; ++l, shift -= 3 * width)
+                for (int l = 0; l < kernelheight; ++l, shift -= channels * width)
                 {
                     for (int m = 0; m < kernelwidth; ++m, ++index)
                     {
-                        buf[index] = img_in[shift + m * 3];
+                        buffer[index] = img_in[shift + m * channels];
                     }
                 }
 
-                img_out[pos] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
+                img_out[pos] = static_cast<T>(kernelcalc<T, kernelheight, kernelwidth>(buffer.get(), kernel));
             }
         }
     }
 }
 
-template <unsigned kernelheight, unsigned kernelwidth>
-void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t *img_out, std::array<double, kernelheight * kernelwidth> kernel)
+template <typename T, unsigned kernelheight, unsigned kernelwidth>
+void borderhandling(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel)
 {
-    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(kernelheight * kernelwidth);
+    std::unique_ptr<T[]> buffer = std::make_unique<T[]>(kernelheight * kernelwidth);
     std::array<std::pair<int, int>, kernelheight * kernelwidth> indicies;
 
     int starty = -static_cast<int>((kernelheight + 1) / 2 - 1);
@@ -92,12 +93,12 @@ void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t 
                     indicies.at(pos) = mirrorindex(i + k, j + l, height - 1, width - 1);                    
                 }
             }
-            for (int m = 0; m < 3; ++m){
+            for (int m = 0; m < channels; ++m){
                 for (int n = 0; n < indicies.size(); ++n){
-                    buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
+                    buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
                 }
 
-                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
+                img_out[(i * width + j) * channels + m] = static_cast<T>(kernelcalc<T, kernelheight, kernelwidth>(buffer.get(), kernel));
             }
         }
     }
@@ -110,11 +111,11 @@ void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t 
                 }
             }
 
-            for (int m = 0; m < 3; ++m){
+            for (int m = 0; m < channels; ++m){
                 for (int n = 0; n < indicies.size(); ++n){
-                    buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
+                    buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
                 }
-                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
+                img_out[(i * width + j) * channels + m] = static_cast<T>(kernelcalc<T, kernelheight, kernelwidth>(buffer.get(), kernel));
             }
         }
     }
@@ -127,11 +128,11 @@ void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t 
                 }
             }
 
-            for (int m = 0; m < 3; ++m){
+            for (int m = 0; m < channels; ++m){
                 for (int n = 0; n < indicies.size(); ++n){
-                    buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
+                    buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
                 }
-                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
+                img_out[(i * width + j) * channels + m] = static_cast<T>(kernelcalc<T, kernelheight, kernelwidth>(buffer.get(), kernel));
             }
         }
     }
@@ -144,15 +145,16 @@ void borderhandling(const uint8_t *img_in, size_t width, size_t height, uint8_t 
                 }
             }
 
-            for (int m = 0; m < 3; ++m){
+            for (int m = 0; m < channels; ++m){
                 for (int n = 0; n < indicies.size(); ++n){
-                    buf[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * 3 + m];
+                    buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
                 }
-                img_out[(i * width + j) * 3 + m] = static_cast<uint8_t>(kernelcalc<kernelheight, kernelwidth>(buf.get(), kernel));
+                img_out[(i * width + j) * channels + m] = static_cast<T>(kernelcalc<T, kernelheight, kernelwidth>(buffer.get(), kernel));
             }
         }
     }       
 }
+
 constexpr std::pair<int, int> mirrorindex(int posy, int posx, int endy, int endx)
 {
     if ((posx >= 0 && posx <= endx) && (posy >= 0 && posy <= endy))
