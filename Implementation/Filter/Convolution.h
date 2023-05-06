@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdio>
 #include <algorithm>
 #include <tuple>
@@ -18,20 +19,20 @@ constexpr float kernelcalc(const T *buffer, std::array<float, kernelheight * ker
 constexpr std::pair<int, int> mirrorindex(int posx, int posy, int endx, int endy);
 
 
-
 template <typename T, unsigned kernelheight, unsigned kernelwidth>
-void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel){
+void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel)
+{
     std::reverse(kernel.begin(), kernel.end());
     innerconvolution<T, kernelheight, kernelwidth>(img_in, width, height, channels, img_out, kernel);
     borderhandling<T, kernelheight, kernelwidth>(img_in, width, height, channels, img_out, kernel);
 }
 
-
 template <typename T, unsigned kernelheight, unsigned kernelwidth>
 constexpr float kernelcalc(const T *buffer, std::array<float, kernelheight * kernelwidth> kernel)
 {
     float sum = 0;
-    for(int i = 0; i < kernel.size(); ++i){
+    for (int i = 0; i < kernel.size(); ++i)
+    {
         sum += static_cast<float>(buffer[i]) * kernel.at(i);
     }
 
@@ -44,7 +45,6 @@ void innerconvolution(const T *img_in, size_t width, size_t height, size_t chann
     std::unique_ptr<T[]> buffer = std::make_unique<T[]>(kernelheight * kernelwidth);
     int kernelwidthradius = (kernelwidth - 1) / 2;
     int kernelheightradius = (kernelheight - 1) / 2;
-
 
     for (int i = kernelheightradius; i < height - kernelheightradius; ++i)
     {
@@ -86,15 +86,21 @@ void borderhandling(const T *img_in, size_t width, size_t height, size_t channel
     int kernelwidthradius = (kernelwidth - 1) / 2;
     int kernelheightradius = (kernelheight - 1) / 2;
 
-    for (int i = 0; i < kernelheightradius; ++i){
-        for (int j = 0; j < width; ++j, pos = 0){
-            for (int k = starty; k <= endy; ++k){
-                for (int l = startx; l <= endx; ++l, ++pos){
-                    indicies.at(pos) = mirrorindex(i + k, j + l, height - 1, width - 1);                    
+    for (int i = 0; i < kernelheightradius; ++i)
+    {
+        for (int j = 0; j < width; ++j, pos = 0)
+        {
+            for (int k = starty; k <= endy; ++k)
+            {
+                for (int l = startx; l <= endx; ++l, ++pos)
+                {
+                    indicies.at(pos) = mirrorindex(i + k, j + l, height - 1, width - 1);
                 }
             }
-            for (int m = 0; m < channels; ++m){
-                for (int n = 0; n < indicies.size(); ++n){
+            for (int m = 0; m < channels; ++m)
+            {
+                for (int n = 0; n < indicies.size(); ++n)
+                {
                     buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
                 }
 
@@ -102,17 +108,23 @@ void borderhandling(const T *img_in, size_t width, size_t height, size_t channel
             }
         }
     }
-    
-    for(int i = (height - kernelheightradius); i < height; ++i){
-        for(int j = 0; j < width; ++j,  pos = 0){
-            for (int k = starty; k <= endy; ++k){
-                for (int l = startx; l <= endx; ++l, ++pos){
+
+    for (int i = (height - kernelheightradius); i < height; ++i)
+    {
+        for (int j = 0; j < width; ++j, pos = 0)
+        {
+            for (int k = starty; k <= endy; ++k)
+            {
+                for (int l = startx; l <= endx; ++l, ++pos)
+                {
                     indicies.at(pos) = mirrorindex(i + k, j + l, height - 1, width - 1);
                 }
             }
 
-            for (int m = 0; m < channels; ++m){
-                for (int n = 0; n < indicies.size(); ++n){
+            for (int m = 0; m < channels; ++m)
+            {
+                for (int n = 0; n < indicies.size(); ++n)
+                {
                     buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
                 }
                 img_out[(i * width + j) * channels + m] = static_cast<T>(kernelcalc<T, kernelheight, kernelwidth>(buffer.get(), kernel));
@@ -120,16 +132,22 @@ void borderhandling(const T *img_in, size_t width, size_t height, size_t channel
         }
     }
 
-    for(int i = kernelheightradius; i < (height - kernelheightradius); ++i){
-        for(int j = 0; j < kernelwidthradius; ++j, pos = 0){
-            for (int k = starty; k <= endy; ++k){
-                for (int l = startx; l <= endx; ++l, ++pos){
+    for (int i = kernelheightradius; i < (height - kernelheightradius); ++i)
+    {
+        for (int j = 0; j < kernelwidthradius; ++j, pos = 0)
+        {
+            for (int k = starty; k <= endy; ++k)
+            {
+                for (int l = startx; l <= endx; ++l, ++pos)
+                {
                     indicies.at(pos) = mirrorindex(i + k, j + l, height - 1, width - 1);
                 }
             }
 
-            for (int m = 0; m < channels; ++m){
-                for (int n = 0; n < indicies.size(); ++n){
+            for (int m = 0; m < channels; ++m)
+            {
+                for (int n = 0; n < indicies.size(); ++n)
+                {
                     buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
                 }
                 img_out[(i * width + j) * channels + m] = static_cast<T>(kernelcalc<T, kernelheight, kernelwidth>(buffer.get(), kernel));
@@ -137,22 +155,28 @@ void borderhandling(const T *img_in, size_t width, size_t height, size_t channel
         }
     }
 
-    for(int i = kernelheightradius; i < (height - kernelheightradius); ++i){
-        for(int j = width - kernelwidthradius; j < width; ++j, pos = 0){
-            for (int k = starty; k <= endy; ++k){
-                for (int l = startx; l <= endx; ++l, ++pos){
+    for (int i = kernelheightradius; i < (height - kernelheightradius); ++i)
+    {
+        for (int j = width - kernelwidthradius; j < width; ++j, pos = 0)
+        {
+            for (int k = starty; k <= endy; ++k)
+            {
+                for (int l = startx; l <= endx; ++l, ++pos)
+                {
                     indicies.at(pos) = mirrorindex(i + k, j + l, height - 1, width - 1);
                 }
             }
 
-            for (int m = 0; m < channels; ++m){
-                for (int n = 0; n < indicies.size(); ++n){
+            for (int m = 0; m < channels; ++m)
+            {
+                for (int n = 0; n < indicies.size(); ++n)
+                {
                     buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
                 }
                 img_out[(i * width + j) * channels + m] = static_cast<T>(kernelcalc<T, kernelheight, kernelwidth>(buffer.get(), kernel));
             }
         }
-    }       
+    }
 }
 
 constexpr std::pair<int, int> mirrorindex(int posy, int posx, int endy, int endx)

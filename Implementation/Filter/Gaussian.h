@@ -1,8 +1,10 @@
-#include "Convolution.h"
-#include <array>
-#include <cmath>
+#pragma once
+#include "convolution.h"
 #include <cinttypes>
 #include <cstdio>
+#include <array>
+#include <memory>
+#include <cmath>
 
 template <typename T, int ksize>
 constexpr void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out);
@@ -37,7 +39,6 @@ constexpr void gaussianBlurSeparate(const T *img_in, size_t width, size_t height
     convolution<T, ksize, 1>(tmp.get(), width, height, channels, img_out, kernelhorizontal);
 }
 
-
 template <int kernelheight, int kernelwidth>
 constexpr std::array<float, kernelheight * kernelwidth> gaussianKernel(float sigma)
 {
@@ -57,7 +58,8 @@ constexpr std::array<float, kernelheight * kernelwidth> gaussianKernel(float sig
             kernel.at(pos) = tmp;
         }
     }
-    if(sum != 0.0){
+    if (sum != 0.0)
+    {
         for (int i = 0; i < kernel.size(); ++i)
         {
             kernel.at(i) /= sum;
@@ -69,7 +71,7 @@ constexpr std::array<float, kernelheight * kernelwidth> gaussianKernel(float sig
 
 constexpr float sigmaToksize(int ksize)
 {
-    return 0.3*((ksize-1)*0.5 - 1) + 0.8;
+    return 0.3 * ((ksize - 1) * 0.5 - 1) + 0.8;
 }
 
 constexpr float hg(int i, int j, int meani, int meanj, float sigma)

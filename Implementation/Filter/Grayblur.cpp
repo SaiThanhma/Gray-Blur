@@ -1,12 +1,10 @@
 #include "Grayblur.h"
-#include "iostream"
-
 
 void grayblur(const uint8_t* img_in, size_t width, size_t height, uint8_t* img_out){
 
     std::unique_ptr<uint8_t[]> tmpgray = std::make_unique<uint8_t[]>(width * height * 3);
     gray(img_in, width, height, tmpgray.get());
-    blurrbg(tmpgray.get(), width, height, img_out);
+    blurgray(tmpgray.get(), width, height, img_out);
 
 }
 
@@ -43,6 +41,7 @@ void blurgray(const uint8_t* img_in, size_t width, size_t height, uint8_t* img_o
                 img_in[y * width * 3 + x - width * 3], 
                 img_in[y * width * 3 + x - (width + 1) * 3]
                 );
+                grayblurvalue=0;
             img_out[y * width * 3 + x] = grayblurvalue;
             img_out[y * width * 3 + x + 1] = grayblurvalue;
             img_out[y * width * 3 + x + 2] = grayblurvalue;
