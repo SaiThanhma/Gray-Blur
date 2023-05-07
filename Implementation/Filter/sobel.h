@@ -46,7 +46,7 @@ void sobel(const T *img_in, size_t width, size_t height, size_t channels, T *img
         //   img_out[i] = static_cast<uint8_t>(std::sqrt(std::pow((img_outX.get()[i]), 2) + std::sqrt(std::pow(img_outY.get()[i], 2))));
         img_out[i] = static_cast<uint8_t>((std::abs(img_outX.get()[i]) + std::abs(img_outY.get()[i])));
         double angle = std::atan2(img_outY.get()[i], img_outX.get()[i]);
-        if (img_out[i] > 40)
+        if (img_out[i] > 35)
         {
             Color c = colorGradient(angle);
             img_out[i] = std::get<0>(c);
