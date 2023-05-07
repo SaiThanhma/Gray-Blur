@@ -74,7 +74,7 @@ constexpr void kernelCalculation(const T *img_in, size_t width, size_t height, s
             }
         }
 
-        img_out[pos] = static_cast<T>(std::ceil(weightedSum<T, kernelheight, kernelwidth>(buffer, kernel)));
+        img_out[pos] = static_cast<T>(weightedSum<T, kernelheight, kernelwidth>(buffer, kernel));
         img_out[pos + 1] = img_out[pos];
         img_out[pos + 2] = img_out[pos];
     }
@@ -95,7 +95,7 @@ constexpr void kernelCalculation(const T *img_in, size_t width, size_t height, s
                 buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
             }
 
-            img_out[pos + m] = static_cast<T>(std::ceil(weightedSum<T, kernelheight, kernelwidth>(buffer, kernel)));
+            img_out[pos + m] = static_cast<T>(weightedSum<T, kernelheight, kernelwidth>(buffer, kernel));
         }
     }
 }
