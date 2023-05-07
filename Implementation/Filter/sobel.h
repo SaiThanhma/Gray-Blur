@@ -37,8 +37,8 @@ void sobel(const T *img_in, size_t width, size_t height, size_t channels, T *img
     std::unique_ptr<float[]> img_outY = std::make_unique<float[]>(size);
     squish<T>(img_ingrayblur.get(), img_inX.get(), img_inY.get(), size);
 
-    convolution<float, 3, 3>(img_inX.get(), width, height, channels, img_outX.get(), sx);
-    convolution<float, 3, 3>(img_inY.get(), width, height, channels, img_outY.get(), sy);
+    convolution<float, 3, 3, true>(img_inX.get(), width, height, channels, img_outX.get(), sx);
+    convolution<float, 3, 3, true>(img_inY.get(), width, height, channels, img_outY.get(), sy);
 
     for (int i = 0; i < size - 2; i += 3)
     {

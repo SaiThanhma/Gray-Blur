@@ -11,14 +11,8 @@ using Kernel = std::array<float,_Size>;
 template<size_t _Size>
 using Coordinates = std::array<std::pair<int, int>, _Size>;
 
-template <typename T, unsigned kernelheight, unsigned kernelwidth>
+template <typename T, unsigned kernelheight, unsigned kernelwidth, bool gray>
 void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel);
-
-template <typename T, unsigned kernelheight, unsigned kernelwidth>
-void innerconvolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel);
-
-template <typename T, unsigned kernelheight, unsigned kernelwidth>
-void borderhandling(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel);
 
 template <typename T, unsigned kernelheight, unsigned kernelwidth>
 constexpr float kernelcalc(const T *buffer, std::array<float, kernelheight * kernelwidth> kernel);
@@ -26,22 +20,33 @@ constexpr float kernelcalc(const T *buffer, std::array<float, kernelheight * ker
 template <unsigned kernelheight, unsigned kernelwidth>
 constexpr void getIndicies(std::array<std::pair<int, int>, kernelheight * kernelwidth> &indicies,int i, int j, size_t width, size_t height);
 
-template <typename T, unsigned kernelheight, unsigned kernelwidth>
-constexpr void channelhandler(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int pos,std::array<float, kernelheight * kernelwidth> kernel, std::array<std::pair<int, int>, kernelheight * kernelwidth> indicies);
+template <typename T, unsigned kernelheight, unsigned kernelwidth, bool gray>
+constexpr void channelhandler(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int pos, Kernel<kernelheight * kernelwidth> kernel, Coordinates<kernelheight * kernelwidth> &indicies, T *buffer);
 
 constexpr std::pair<int, int> mirrorindex(int posx, int posy, int endx, int endy);
 
 
-template <typename T, unsigned kernelheight, unsigned kernelwidth>
+template <typename T, unsigned kernelheight, unsigned kernelwidth, bool gray>
 void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel)
 {
     std::reverse(kernel.begin(), kernel.end());
-    innerconvolution<T, kernelheight, kernelwidth>(img_in, width, height, channels, img_out, kernel);
-    borderhandling<T, kernelheight, kernelwidth>(img_in, width, height, channels, img_out, kernel);
+    std::unique_ptr<T[]> buffer = std::make_unique<T[]>(kernelheight * kernelwidth);
+    Coordinates<kernelheight * kernelwidth> indicies;
+    int kernelwidthradius = (kernelwidth - 1) / 2;
+    int kernelheightradius = (kernelheight - 1) / 2;
+
+    for (int i = 0; i < height; ++i)
+    {
+        for (int j = 0; j < width; ++j)
+        {
+            getIndicies<kernelheight, kernelwidth>(indicies, i, j , width, height);
+            channelhandler<T, kernelheight, kernelwidth, gray>(img_in, width, height, channels, img_out, (i * width + j) * channels, kernel, indicies, buffer.get());    
+        }
+    }
 }
 
 template <typename T, unsigned kernelheight, unsigned kernelwidth>
-constexpr float kernelcalc(const T *buffer, std::array<float, kernelheight * kernelwidth> kernel)
+constexpr float kernelcalc(const T *buffer, Kernel<kernelheight * kernelwidth> kernel)
 {
     float sum = 0;
     for (int i = 0; i < kernel.size(); ++i)
@@ -52,93 +57,8 @@ constexpr float kernelcalc(const T *buffer, std::array<float, kernelheight * ker
     return sum;
 }
 
-template <typename T, unsigned kernelheight, unsigned kernelwidth>
-void innerconvolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel)
-{
-    std::unique_ptr<T[]> buffer = std::make_unique<T[]>(kernelheight * kernelwidth);
-    int kernelwidthradius = (kernelwidth - 1) / 2;
-    int kernelheightradius = (kernelheight - 1) / 2;
-
-    for (int i = kernelheightradius; i < height - kernelheightradius; ++i)
-    {
-        
-        for (int j = kernelwidthradius; j < width - kernelwidthradius; ++j)
-        {
-            for (int k = 0; k < channels; ++k)
-            {
-                int pos = (i * width + j) * channels + k;
-                int shift = (pos - kernelwidthradius * channels) + width * channels * kernelheightradius;
-                int index = 0;
-
-                for (int l = 0; l < kernelheight; ++l, shift -= channels * width)
-                {
-                    for (int m = 0; m < kernelwidth; ++m, ++index)
-                    {
-                        buffer[index] = img_in[shift + m * channels];
-                    }
-                }
-
-                img_out[pos] = static_cast<T>(kernelcalc<T, kernelheight, kernelwidth>(buffer.get(), kernel));
-            }
-        }
-    }
-}
-
-template <typename T, unsigned kernelheight, unsigned kernelwidth>
-void borderhandling(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, std::array<float, kernelheight * kernelwidth> kernel)
-{
-    std::unique_ptr<T[]> buffer = std::make_unique<T[]>(kernelheight * kernelwidth);
-    std::array<std::pair<int, int>, kernelheight * kernelwidth> indicies;
-
-    int starty = -static_cast<int>((kernelheight + 1) / 2 - 1);
-    int endy = (kernelheight + 1) / 2 - 1;
-
-    int startx = -static_cast<int>((kernelwidth + 1) / 2 - 1);
-    int endx = (kernelwidth + 1) / 2 - 1;
-
-    int pos = 0;
-    int kernelwidthradius = (kernelwidth - 1) / 2;
-    int kernelheightradius = (kernelheight - 1) / 2;
-
-    for (int i = 0; i < kernelheightradius; ++i)
-    {
-        for (int j = 0; j < width; ++j, pos = 0)
-        {
-            getIndicies<kernelheight, kernelwidth>(indicies, i, j , width, height);
-            channelhandler<T, kernelheight, kernelwidth>(img_in, width, height, channels, img_out, (i * width + j) * channels, kernel, indicies);
-        }
-    }
-
-    for (int i = (height - kernelheightradius); i < height; ++i)
-    {
-        for (int j = 0; j < width; ++j, pos = 0)
-        {
-            getIndicies<kernelheight, kernelwidth>(indicies, i, j , width, height);
-            channelhandler<T, kernelheight, kernelwidth>(img_in, width, height, channels, img_out, (i * width + j) * channels, kernel, indicies);
-        }
-    }
-
-    for (int i = kernelheightradius; i < (height - kernelheightradius); ++i)
-    {
-        for (int j = 0; j < kernelwidthradius; ++j, pos = 0)
-        {
-            getIndicies<kernelheight, kernelwidth>(indicies, i, j , width, height);
-            channelhandler<T, kernelheight, kernelwidth>(img_in, width, height, channels, img_out, (i * width + j) * channels, kernel, indicies);
-        }
-    }
-
-    for (int i = kernelheightradius; i < (height - kernelheightradius); ++i)
-    {
-        for (int j = width - kernelwidthradius; j < width; ++j, pos = 0)
-        {
-            getIndicies<kernelheight, kernelwidth>(indicies, i, j , width, height);
-            channelhandler<T, kernelheight, kernelwidth>(img_in, width, height, channels, img_out, (i * width + j) * channels, kernel, indicies);
-        }
-    }
-}
-
 template <unsigned kernelheight, unsigned kernelwidth>
-constexpr void getIndicies(std::array<std::pair<int, int>, kernelheight * kernelwidth> &indicies,int i, int j, size_t width, size_t height){
+constexpr void getIndicies(Coordinates<kernelheight * kernelwidth> &indicies,int i, int j, size_t width, size_t height){
     int pos = 0;
     int starty = -static_cast<int>((kernelheight + 1) / 2 - 1);
     int endy = (kernelheight + 1) / 2 - 1;
@@ -155,17 +75,29 @@ constexpr void getIndicies(std::array<std::pair<int, int>, kernelheight * kernel
     }
 }
 
-template <typename T, unsigned kernelheight, unsigned kernelwidth>
-constexpr void channelhandler(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int pos,std::array<float, kernelheight * kernelwidth> kernel, std::array<std::pair<int, int>, kernelheight * kernelwidth> indicies){
-    std::unique_ptr<T[]> buffer = std::make_unique<T[]>(kernelheight * kernelwidth);
-    for (int m = 0; m < channels; ++m)
-    {
+template <typename T, unsigned kernelheight, unsigned kernelwidth, bool gray>
+constexpr void channelhandler(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int pos, Kernel<kernelheight * kernelwidth> kernel, Coordinates<kernelheight * kernelwidth> &indicies, T *buffer){
+    if constexpr(gray){
+        
         for (int n = 0; n < indicies.size(); ++n)
         {
-            buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
+            buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels];
         }
 
-        img_out[pos + m] = static_cast<T>(std::ceil(kernelcalc<T, kernelheight, kernelwidth>(buffer.get(), kernel)));
+        img_out[pos] = static_cast<T>(std::ceil(kernelcalc<T, kernelheight, kernelwidth>(buffer, kernel)));
+        img_out[pos + 1] = img_out[pos];
+        img_out[pos + 2] = img_out[pos];
+    }
+    else{
+        for (int m = 0; m < channels; ++m)
+        {
+            for (int n = 0; n < indicies.size(); ++n)
+            {
+                buffer[n] = img_in[(indicies.at(n).first * width + indicies.at(n).second) * channels + m];
+            }
+
+            img_out[pos + m] = static_cast<T>(std::ceil(kernelcalc<T, kernelheight, kernelwidth>(buffer, kernel)));
+        }
     }
 }
 

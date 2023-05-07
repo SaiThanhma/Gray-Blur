@@ -6,10 +6,10 @@
 #include <memory>
 #include <cmath>
 
-template <typename T, int ksize>
+template <typename T, int ksize, bool gray>
 constexpr void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out);
 
-template <typename T, int ksize>
+template <typename T, int ksize, bool gray>
 constexpr void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t channels, T *img_out);
 
 template <int kernelheight, int kernelwidth>
@@ -20,23 +20,23 @@ constexpr float sigmaToksize(int ksize);
 constexpr float hg(int i, int j, int meani, int meanj, float sigma);
 
 
-template <typename T, int ksize>
+template <typename T, int ksize, bool gray>
 constexpr void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out)
 {
     float sigma = sigmaToksize(ksize);
     auto kernel = gaussianKernel<ksize, ksize>(sigma);
-    convolution<T, ksize, ksize>(img_in, width, height, channels, img_out, kernel);
+    convolution<T, ksize, ksize, gray>(img_in, width, height, channels, img_out, kernel);
 }
 
-template <typename T, int ksize>
+template <typename T, int ksize, bool gray>
 constexpr void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t channels, T *img_out)
 {
     float sigma = sigmaToksize(ksize);
     std::unique_ptr<T[]> tmp = std::make_unique<T[]>(width * height * channels);
     auto kernelvertical = gaussianKernel<1, ksize>(sigma);
     auto kernelhorizontal = gaussianKernel<ksize, 1>(sigma);
-    convolution<T, 1, ksize>(img_in, width, height, channels, tmp.get(), kernelvertical);
-    convolution<T, ksize, 1>(tmp.get(), width, height, channels, img_out, kernelhorizontal);
+    convolution<T, 1, ksize, gray>(img_in, width, height, channels, tmp.get(), kernelvertical);
+    convolution<T, ksize, 1, gray>(tmp.get(), width, height, channels, img_out, kernelhorizontal);
 }
 
 template <int kernelheight, int kernelwidth>
