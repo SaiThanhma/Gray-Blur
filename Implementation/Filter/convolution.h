@@ -1,6 +1,5 @@
 #pragma once
 #include <cstdio>
-#include <algorithm>
 #include <tuple>
 #include <memory>
 #include <cmath>
@@ -10,7 +9,6 @@
 using Kernel = std::vector<std::vector<float>>;
 using Coordinates = std::pair<int, int>;
 using indexCall = Coordinates (*)(int posy, int posx, int endy, int endx);
-
 
 enum Border
 {
@@ -49,8 +47,8 @@ struct Index
 
     static constexpr Coordinates extendIndex(int posy, int posx, int endy, int endx)
     {
-        int indexy;
-        int indexx;
+        int indexy = 0;
+        int indexx = 0;
 
         if (posy >= 0 && posy <= endy)
             indexy = posy;
@@ -78,17 +76,20 @@ struct Index
 };
 
 template <typename T>
-constexpr void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel, Border border);
+void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel, Border border);
 
 template <typename T>
 void borderHandling(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel, indexCall index);
 
 template <typename T>
-constexpr void convolutionWO(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel);
+void convolutionWO(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel);
+
+Kernel convolution(const Kernel &kernel1, const Kernel &kernel2);
 
 template <typename T>
-constexpr void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel, Border border)
+void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel, Border border)
 {
+
     switch (border)
     {
     case EXTEND:
@@ -113,7 +114,7 @@ constexpr void convolution(const T *img_in, size_t width, size_t height, size_t 
 }
 
 template <typename T>
-constexpr void convolutionWO(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel)
+void convolutionWO(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel)
 {
     int kernelheight = kernel.size();
     int kernelwidth = kernel.at(0).size();
@@ -241,4 +242,48 @@ void borderHandling(const T *img_in, size_t width, size_t height, size_t channel
             }
         }
     }
+}
+
+Kernel convolution(const Kernel &first, const Kernel &second){
+
+    int kernel1height = first.size();
+    int kernel1width = first.at(0).size();
+
+    int kernel2height = second.size();
+    int kernel2width = second.at(0).size();
+
+    int kernelresultheight = kernel1height + kernel2height - 1;
+    int kernelresultwidth = kernel1width + kernel2width - 1;
+
+    Kernel res;
+    res.reserve(kernelresultheight);
+    int starty = -(kernelresultheight / 2);
+    int endy = (kernelresultheight / 2);
+
+    int startx = -(kernelresultwidth / 2);
+    int endx = (kernelresultwidth / 2);
+
+    for(int j = starty; j <= endy; ++j){
+        std::vector<float> sub;
+        for(int k = startx; k <= endx; ++k){
+            float sum = 0;
+            bool set = false;
+            for(int p = 0; p < kernel1height; ++p){
+                for(int q = 0; q < kernel1width; ++q){
+                    if(j - p + 1 < 0 || j - p + 1 >= kernel2height || k - q + 1 < 0 || k - q + 1 >= kernel2width) {
+                        continue;
+                    }
+                    set = true;
+                    sum += first.at(p).at(q) * second.at(j - p + 1).at(k - q + 1);
+                }
+            }
+            if(set){
+                sub.push_back(sum);
+                set = false;
+            }
+
+        }
+        res.emplace_back(sub);
+    }
+    return res;
 }
