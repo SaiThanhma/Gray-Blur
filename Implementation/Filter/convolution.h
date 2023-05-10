@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdio>
+#include <algorithm>
 #include <tuple>
 #include <memory>
 #include <cmath>
@@ -76,7 +77,7 @@ struct Index
 };
 
 template <typename T>
-void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel, Border border);
+void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, Kernel kernel, Border border);
 
 template <typename T>
 void borderHandling(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel, indexCall index);
@@ -84,12 +85,15 @@ void borderHandling(const T *img_in, size_t width, size_t height, size_t channel
 template <typename T>
 void convolutionWO(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel);
 
-Kernel convolution(const Kernel &kernel1, const Kernel &kernel2);
+Kernel convolution(const Kernel &a, const Kernel &b);
+
+constexpr void reverseKernel(Kernel &kernel);
 
 template <typename T>
-void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel, Border border)
+void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, Kernel kernel, Border border)
 {
-
+    reverseKernel(kernel);
+    
     switch (border)
     {
     case EXTEND:
@@ -244,37 +248,32 @@ void borderHandling(const T *img_in, size_t width, size_t height, size_t channel
     }
 }
 
-Kernel convolution(const Kernel &first, const Kernel &second){
+Kernel convolution(const Kernel &a, const Kernel &b){
 
-    int kernel1height = first.size();
-    int kernel1width = first.at(0).size();
+    int aheight = a.size();
+    int awidth = a.at(0).size();
 
-    int kernel2height = second.size();
-    int kernel2width = second.at(0).size();
+    int bheight = b.size();
+    int bwidth = b.at(0).size();
 
-    int kernelresultheight = kernel1height + kernel2height - 1;
-    int kernelresultwidth = kernel1width + kernel2width - 1;
+    int kernelresultheight = aheight + bheight - 1;
+    int kernelresultwidth = awidth + bwidth - 1;
 
     Kernel res;
     res.reserve(kernelresultheight);
-    int starty = -(kernelresultheight / 2);
-    int endy = (kernelresultheight / 2);
-
-    int startx = -(kernelresultwidth / 2);
-    int endx = (kernelresultwidth / 2);
-
-    for(int j = starty; j <= endy; ++j){
+    for(int j = 0; j < kernelresultheight; ++j){
         std::vector<float> sub;
-        for(int k = startx; k <= endx; ++k){
+        sub.reserve(kernelresultwidth);
+        for(int k = 0; k <= kernelresultwidth ; ++k){
             float sum = 0;
             bool set = false;
-            for(int p = 0; p < kernel1height; ++p){
-                for(int q = 0; q < kernel1width; ++q){
-                    if(j - p + 1 < 0 || j - p + 1 >= kernel2height || k - q + 1 < 0 || k - q + 1 >= kernel2width) {
+            for(int p = 0; p < aheight; ++p){
+                for(int q = 0; q < awidth; ++q){
+                    if(j - p < 0 || j - p >= bheight || k - q < 0 || k - q >= bwidth) {
                         continue;
                     }
                     set = true;
-                    sum += first.at(p).at(q) * second.at(j - p + 1).at(k - q + 1);
+                    sum += a.at(p).at(q) * b.at(j - p).at(k - q);
                 }
             }
             if(set){
@@ -283,7 +282,18 @@ Kernel convolution(const Kernel &first, const Kernel &second){
             }
 
         }
-        res.emplace_back(sub);
+        if(sub.size() != 0){
+        res.push_back(sub);
+        }
     }
     return res;
+}
+
+
+constexpr void reverseKernel(Kernel &kernel){
+    for(auto &i : kernel){
+        std::reverse(i.begin(), i.end());
+    }
+    std::reverse(kernel.begin(), kernel.end());
+
 }
