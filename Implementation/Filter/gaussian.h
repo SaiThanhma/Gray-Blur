@@ -2,67 +2,73 @@
 #include "convolution.h"
 #include <cinttypes>
 #include <cstdio>
-#include <array>
+#include <vector>
 #include <memory>
 #include <cmath>
 
-template <typename T, int ksize, bool gray>
-constexpr void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out);
+using Kernel = std::vector<std::vector<float>>;
 
-template <typename T, int ksize, bool gray>
-constexpr void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t channels, T *img_out);
+template <typename T>
+void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int ksize, Border border);
 
-template <int kernelheight, int kernelwidth>
-constexpr std::array<float, kernelheight * kernelwidth> gaussianKernel(float sigma);
+template <typename T>
+void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int ksize, Border border);
+
+constexpr Kernel gaussianKernel(int kernelheight, int kernelwidth, float sigma);
 
 constexpr float sigmaToksize(int ksize);
 
 constexpr float hg(int i, int j, int meani, int meanj, float sigma);
 
-
-template <typename T, int ksize, bool gray>
-constexpr void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out)
+template <typename T>
+void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int ksize, Border border)
 {
-    float sigma = sigmaToksize(ksize);
-    auto kernel = gaussianKernel<ksize, ksize>(sigma);
-    convolution<T, ksize, ksize, gray>(img_in, width, height, channels, img_out, kernel);
+   float sigma = sigmaToksize(ksize);
+   auto kernel = gaussianKernel(ksize, ksize, sigma);
+   convolution<T>(img_in, width, height, channels, img_out, kernel, border);
 }
 
-template <typename T, int ksize, bool gray>
-constexpr void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t channels, T *img_out)
+template <typename T>
+void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int ksize, Border border)
 {
     float sigma = sigmaToksize(ksize);
     std::unique_ptr<T[]> tmp = std::make_unique<T[]>(width * height * channels);
-    auto kernelvertical = gaussianKernel<1, ksize>(sigma);
-    auto kernelhorizontal = gaussianKernel<ksize, 1>(sigma);
-    convolution<T, 1, ksize, gray>(img_in, width, height, channels, tmp.get(), kernelvertical);
-    convolution<T, ksize, 1, gray>(tmp.get(), width, height, channels, img_out, kernelhorizontal);
+    auto kernelhorizontal = gaussianKernel(1, ksize, sigma);
+    auto kernelvertical = gaussianKernel(ksize,1 ,sigma);
+    convolution<T>(img_in, width, height, channels, tmp.get(), kernelhorizontal, border);
+    convolution<T>(tmp.get(), width, height, channels, img_out, kernelvertical, border);
 }
 
-template <int kernelheight, int kernelwidth>
-constexpr std::array<float, kernelheight * kernelwidth> gaussianKernel(float sigma)
+constexpr Kernel gaussianKernel(int kernelheight, int kernelwidth, float sigma)
 {
-    std::array<float, kernelheight * kernelwidth> kernel;
+    Kernel kernel;
+    kernel.reserve(kernelheight);
     float sum = 0.0;
     float tmp = 0.0;
     int meani = kernelheight / 2;
     int meanj = kernelwidth / 2;
-    int pos = 0;
 
     for (int i = 0; i < kernelheight; ++i)
     {
-        for (int j = 0; j < kernelwidth; ++j, ++pos)
+        std::vector<float> sub;
+        sub.reserve(kernelwidth);
+        for (int j = 0; j < kernelwidth; ++j)
         {
             tmp = hg(i, j, meani, meanj, sigma);
             sum += tmp;
-            kernel.at(pos) = tmp;
+            sub.emplace_back(tmp);
         }
+        kernel.emplace_back(std::move(sub));
     }
+
     if (sum != 0.0)
     {
-        for (int i = 0; i < kernel.size(); ++i)
+        for (int i = 0; i < kernelheight; ++i)
         {
-            kernel.at(i) /= sum;
+            for (int j = 0; j < kernelwidth; ++j)
+            {
+                kernel.at(i).at(j) /= sum;
+            }
         }
     }
 
