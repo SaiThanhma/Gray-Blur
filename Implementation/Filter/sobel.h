@@ -7,7 +7,6 @@
 #include <memory>
 #include <vector>
 #include <cmath>
-#include <iostream>
 
 using Color = std::tuple<int, int, int>;
 
@@ -32,13 +31,13 @@ Color colorGradient(double angle);
 template <typename T>
 void sobel(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int ksize, int gaussianKsize, int threshold, bool gradient)
 {
-    size_t size = width * height * channels;
+    int size = width * height * channels;
 
     std::unique_ptr<float[]> gy = std::make_unique<float[]>(size);
     std::unique_ptr<float[]> gx = std::make_unique<float[]>(size);
 
     getGyGx(img_in, width, height, channels, gy.get(), gx.get(), ksize, gaussianKsize);
-
+    
     if (gradient)
     {
         for (int i = 0; i < size - channels + 1; i += channels)
@@ -82,17 +81,14 @@ template <typename T>
 void getGyGx(const T *img_in, size_t width, size_t height, size_t channels, float *img_outY, float *img_outX, int ksize, int gaussianKsize)
 {
 
-    size_t size = width * height * channels;
+    int size = width * height * channels;
 
     std::unique_ptr<T[]> img_ingray = std::make_unique<T[]>(size);
     std::unique_ptr<T[]> img_ingrayblur = std::make_unique<T[]>(size);
-
     gray<T>(img_in, width, height, channels, img_ingray.get(), 0.33f, 0.33f, 0.33f);
     gaussianBlurSeparate(img_ingray.get(), width, height, channels, img_ingrayblur.get(), ksize, EXTEND);
-
     std::unique_ptr<float[]> img_inY = std::make_unique<float[]>(size);
     std::unique_ptr<float[]> img_inX = std::make_unique<float[]>(size);
-
     auto kernelpair = sobelKernel(ksize);
     Kernel sy = kernelpair.first;
     Kernel sx = kernelpair.second;
@@ -161,8 +157,8 @@ Color colorGradient(double angle)
         for (; angle > Pi2; angle -= Pi2)
             ;
 
-    int currentcolor = (angle / Pi2) * 6;
-    int norm = (angle / Pi2) * 255 * 6;
+    int currentcolor = static_cast<int>((angle / Pi2) * 6);
+    int norm = static_cast<int>((angle / Pi2) * 255 * 6);
     int shift = norm % 255;
 
     switch (currentcolor)
@@ -188,9 +184,7 @@ template <typename T>
 void rescaleLightDark(const float *img_in, size_t width, size_t height, size_t channels, T *img_out, int threshold)
 {
     int max = -1000;
-    size_t size = width * height * channels;
-    float mean = 0.0;
-    int counter = 0;
+    int size = width * height * channels;
 
     for (int i = 0; i < size - channels + 1; i += channels)
     {

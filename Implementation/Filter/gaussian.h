@@ -9,10 +9,10 @@
 using Kernel = std::vector<std::vector<float>>;
 
 template <typename T>
-void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int ksize, Border border);
+void gaussianBlur(const T *img_in, int width, int height, int channels, T *img_out, int ksize, Border border);
 
 template <typename T>
-void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int ksize, Border border);
+void gaussianBlurSeparate(const T *img_in, int width, int height, int channels, T *img_out, int ksize, Border border);
 
 constexpr Kernel gaussianKernel(int kernelheight, int kernelwidth, float sigma);
 
@@ -21,7 +21,7 @@ constexpr float sigmaToksize(int ksize);
 constexpr float hg(int i, int j, int meani, int meanj, float sigma);
 
 template <typename T>
-void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int ksize, Border border)
+void gaussianBlur(const T *img_in, int width, int height, int channels, T *img_out, int ksize, Border border)
 {
    float sigma = sigmaToksize(ksize);
    auto kernel = gaussianKernel(ksize, ksize, sigma);
@@ -29,8 +29,8 @@ void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels,
 }
 
 template <typename T>
-void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, int ksize, Border border)
-{
+void gaussianBlurSeparate(const T *img_in, int width, int height, int channels, T *img_out, int ksize, Border border)
+{  
     float sigma = sigmaToksize(ksize);
     std::unique_ptr<T[]> tmp = std::make_unique<T[]>(width * height * channels);
     auto kernelhorizontal = gaussianKernel(1, ksize, sigma);
@@ -77,10 +77,10 @@ constexpr Kernel gaussianKernel(int kernelheight, int kernelwidth, float sigma)
 
 constexpr float sigmaToksize(int ksize)
 {
-    return 0.3 * ((ksize - 1) * 0.5 - 1) + 0.8;
+    return static_cast<float>(0.3 * ((ksize - 1) * 0.5 - 1) + 0.8);
 }
 
 constexpr float hg(int i, int j, int meani, int meanj, float sigma)
 {
-    return std::exp(-0.5 * ((i - meani) * (i - meani) + (j - meanj) * (j - meanj)) / (sigma * sigma));
+    return static_cast<float>(std::exp(-0.5 * ((i - meani) * (i - meani) + (j - meanj) * (j - meanj)) / (sigma * sigma)));
 }

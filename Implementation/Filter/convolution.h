@@ -12,10 +12,10 @@ using indexCall = Coordinates (*)(int posy, int posx, int endy, int endx);
 
 enum Border
 {
+    WO,
     EXTEND,
     MIRROR,
     WRAP,
-    WO,
 };
 
 struct Index
@@ -84,21 +84,13 @@ void borderHandling(const T *img_in, size_t width, size_t height, size_t channel
 template <typename T>
 void convolutionWO(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel);
 
-Kernel convolution(const Kernel &a, const Kernel &b);
+constexpr Kernel convolution(const Kernel &a, const Kernel &b);
 
 constexpr void reverseKernel(Kernel &kernel);
-/*
-template <typename T>
-constexpr bool valid(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, Kernel kernel);
-*/
+
 template <typename T>
 void convolution(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, Kernel kernel, Border border)
 {
-    /*
-    if(!valid(img_in, width, height, channels, img_out, kernel)){
-        return;
-    }
-    */
 
     reverseKernel(kernel);
     convolutionWO(img_in, width, height, channels, img_out, kernel);
@@ -116,6 +108,8 @@ void convolution(const T *img_in, size_t width, size_t height, size_t channels, 
     case WRAP:
         borderHandling(img_in, width, height, channels, img_out, kernel, Index::wrapIndex);
         break;
+    case WO:
+        return;
     }
 }
 
@@ -250,7 +244,7 @@ void borderHandling(const T *img_in, size_t width, size_t height, size_t channel
     }
 }
 
-Kernel convolution(const Kernel &a, const Kernel &b){
+constexpr Kernel convolution(const Kernel &a, const Kernel &b){
 
     int aheight = a.size();
     int awidth = a.at(0).size();
@@ -299,25 +293,3 @@ constexpr void reverseKernel(Kernel &kernel){
     }
     std::reverse(kernel.begin(), kernel.end());
 }
-/*
-template <typename T>
-constexpr bool valid(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, Kernel kernel){
-    if(!img_in || !img_out || width == 0 || height == 0 || channels == 0){
-        return false;
-    }
-
-    int kernelheight = kernel.size();
-    int kernelwidth = kernel.at(0).size();
-
-    if(kernelheight % 2 == 0 || kernelwidth % 2 == 0){
-        return false;
-    }
-
-    for(auto &i : kernel){
-        if(i.size() != kernelwidth){
-            return false;
-        }
-    }
-    return true;
-}
-*/
