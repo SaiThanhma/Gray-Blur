@@ -40,8 +40,7 @@ bool IOhandler::pathHandler(std::string input){
         return false;
     }
 
-    //return input.find(".bmp") != std::string::npos;
-    return true;
+    return input.find(".bmp") != std::string::npos;
 }
 
 bool IOhandler::grayHandler(std::string input)

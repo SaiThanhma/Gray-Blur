@@ -2,14 +2,12 @@
 #include "gaussian.h"
 #include "convolution.h"
 #include "io.h"
-#include "Image/image.h"
 #include "bitmap.h"
 #include <iostream>
 #include <string>
 #include <getopt.h>
 #include <iomanip>
 #include <chrono>
-
 
 static void usage(char *argv0)
 {
@@ -35,7 +33,7 @@ static void usage(char *argv0)
 
 int main(int argc, char **argv)
 {
-    
+
     if (argc < 2)
     {
         usage(argv[0]);
@@ -61,7 +59,7 @@ int main(int argc, char **argv)
         switch (opt)
         {
         case 'g':
-        { 
+        {
             if (optarg && !iohandler.grayHandler(optarg))
             {
                 usage(argv[0]);
@@ -111,50 +109,79 @@ int main(int argc, char **argv)
         usage(argv[0]);
         return 1;
     }
-    
+
     std::unique_ptr<Bitmap> img_in;
-    if(!(img_in = readBmpFile(input.data()))){
+    if (!(img_in = readBmpFile(input.data())))
+    {
         return 1;
     }
-    if(!copyBitmapHeader(input.data(), output.data())){
+    if (!copyBitmapHeader(input.data(), output.data()))
+    {
         return 1;
     }
-    if(img_in->biHeight == 0 || img_in->biWidth == 0){
+    if (img_in->biHeight == 0 || img_in->biWidth == 0)
+    {
         std::cout << "Picture height or width is 0" << std::endl;
         return 1;
     }
 
     std::unique_ptr<uint8_t[]> odata = std::make_unique<uint8_t[]>(img_in->biHeight * img_in->biWidth * 3);
-    if(grayf){
-        auto startgray = std::chrono::system_clock::now(); 
-
-        auto endgray = std::chrono::system_clock::now();
-
-        float resgray = std::chrono::duration_cast<std::chrono::seconds>(endgray-startgray).count();
-
-        std::cout << "Time for gray: " << std::setprecision(5) << resgray << std::endl;
-
-    }
-    if(blurf)
+    if (grayf)
     {
-        auto startblur = std::chrono::system_clock::now(); 
+        auto startgray = std::chrono::steady_clock::now();
 
-        auto endblur = std::chrono::system_clock::now();
+        gray<uint8_t>(img_in->data.get(), img_in->biWidth, img_in->biHeight, 3, odata.get());
 
-        float resblur = std::chrono::duration_cast<std::chrono::seconds>(endblur-startblur).count();
-        std::cout << "Time for blur: " << std::fixed <<std::setprecision(5) << resblur << std::endl;
+        auto endgray = std::chrono::steady_clock::now();
+
+        std::cout << "Time for gray: " << std::chrono::duration_cast<std::chrono::milliseconds>(endgray - startgray).count() << "[µs]" << std::endl;
+
+        img_in->data = std::move(odata);
     }
-    if(sobelf){
+    if (blurf)
+    {
+        if (iohandler.seperate)
+        {
 
-        auto startsobel = std::chrono::system_clock::now(); 
+            auto startblur = std::chrono::steady_clock::now();
+
+            gaussianBlurSeparate<uint8_t>(img_in->data.get(), img_in->biWidth, img_in->biHeight, 3, odata.get(), iohandler.ksize, Border(iohandler.border));
+
+            auto endblur = std::chrono::steady_clock::now();
+
+            std::cout << "Time for seperate blur: " << std::chrono::duration_cast<std::chrono::milliseconds>(endblur - startblur).count() << "[µs]" << std::endl;
+        }
+        else
+        {
+
+            auto startblur = std::chrono::steady_clock::now();
+
+            gaussianBlur<uint8_t>(img_in->data.get(), img_in->biWidth, img_in->biHeight, 3, odata.get(), iohandler.ksize, Border(iohandler.border));
+
+            auto endblur = std::chrono::steady_clock::now();
+
+            std::cout << "Time for blur: " << std::chrono::duration_cast<std::chrono::milliseconds>(endblur - startblur).count() << "[µs]" << std::endl;
+
+        }
+
+        img_in->data = std::move(odata);
+    }
+    if (sobelf)
+    {
+
+        auto startsobel = std::chrono::steady_clock::now();
 
         sobel<uint8_t>(img_in->data.get(), img_in->biWidth, img_in->biHeight, 3, odata.get());
 
-        auto endsobel = std::chrono::system_clock::now();
-        
-        float ressobel = std::chrono::duration_cast<std::chrono::seconds>(endsobel-startsobel).count();
+        auto endsobel = std::chrono::steady_clock::now();
 
-        std::cout << "Time for sobel: " << std::fixed << std::setprecision(2) << ressobel << std::endl;
+        float ressobel = std::chrono::duration_cast<std::chrono::seconds>(endsobel - startsobel).count();
+
+        std::cout << "Time for sobel: " << std::chrono::duration_cast<std::chrono::milliseconds>(endsobel - startsobel).count() << "[µs]" << std::endl;
+    }
+
+    if(!writeBmpFile(output.data(), odata.get(), img_in->size, img_in->bfOffBits, SEEK_SET)){
+        return 1;
     }
 
     return 0;
