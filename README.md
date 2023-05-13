@@ -57,4 +57,5 @@ Notice that the main prgramm only supports .bmp files with color depth = 24. If 
 |:---:|:---:|:---:|:---:|
 ![](data/berries.bmp)|![](data/berries_sobel5x5.bmp)|![](data/berries_sobel7x7.bmp)|![](data/berries_sobel5x5_gradient.bmp)|
 
-#### Colormap image representing the gradient angle <img src="data/gradientcircle.png" width="150" height="150">
+#### Colormap image representing the gradient angle
+<img src="data/gradientcircle.png" width="150" height="150">
