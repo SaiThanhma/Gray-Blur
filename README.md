@@ -32,8 +32,13 @@ Run the program with the following command:
 
 ## Results
 ### Gray
-|Original|Result|Original|Result|
+|Original|Luminance|Original|Luminance|
 |:---:|:---:|:---:|:---:|
 ![](data/lena.bmp)|![](data/lena_gray.bmp)|![](data/berries.bmp)|![](data/berries_gray.bmp)|
+
+### Gaussian blur
+|Original|ksize = 5|ksize = 17|ksize = 51|
+|:---:|:---:|:---:|:---:|
+![](data/lena.bmp)|![](data/lena_blur5x5.bmp)|![](data/lena_blur17x17.bmp)|![](data/lena_blur51x51.bmp)|
 
 
