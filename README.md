@@ -17,7 +17,10 @@ void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t c
 which differ in perfemance. The first one applies the kernel on an image as usual. The second function runs more effient by separating the kernel in two and applying the convolution twice.   
 
 ## Sobel operator
-In order to get a proper result the image will be prepcoessed with a gray filter and a gaussian blur. The function then applies a convolution with the Sobel kernel in the x-Direction and in the y-direction. The magnitude can be calculated by pythagoras theorem and the gradient by the arctan, which will show an edge with corresponding angel/orientation
+In order to get a proper result the image will be prepcoessed with a gray filter and a gaussian blur. The function then applies a convolution with the Sobel kernel in the x-Direction and in the y-direction. The magnitude can be calculated by pythagoras theorem and the gradient by the arctan, which will show an edge with corresponding angel/orientation.
+
+The following image is representing the gradient angle
+<img src="data/gradientcircle.png" width="150" height="150">
 
 # Running the code
 To run the code you can use the provided CMakeLists file. Create a `build` folder and use the command `cmake ..` and then`make` to get the executable.
@@ -56,6 +59,3 @@ Notice that the main prgramm only supports .bmp files with color depth = 24. If 
 |Original|ksize = 5|ksize = 7|Gradient|
 |:---:|:---:|:---:|:---:|
 ![](data/berries.bmp)|![](data/berries_sobel5x5.bmp)|![](data/berries_sobel7x7.bmp)|![](data/berries_sobel5x5_gradient.bmp)|
-
-#### Colormap image representing the gradient angle
-<img src="data/gradientcircle.png" width="150" height="150">
