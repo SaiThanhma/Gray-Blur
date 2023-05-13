@@ -37,7 +37,7 @@ Run the program with the following command:
 ![](data/lena.bmp)|![](data/lena_gray.bmp)|![](data/berries.bmp)|![](data/berries_gray.bmp)|
 
 
-| First Header  | Second Header |
+| Original  | Gray |
 | ------------- | ------------- |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
+| ![](data/lena.bmp)  | ![](data/lena_gray.bmp)  |
+
