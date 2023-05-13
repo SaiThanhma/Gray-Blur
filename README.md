@@ -20,7 +20,7 @@ which differ in perfemance. The first one applies the kernel on an image as usua
 In order to get a proper result the image will be prepcoessed with a gray filter and a gaussian blur. The function then applies a convolution with the Sobel kernel in the x-Direction and in the y-direction. The magnitude can be calculated by pythagoras theorem and the gradient by the arctan, which will show an edge with corresponding angel/orientation
 
 # Running the code
-To run the code you can use the provided CMakeLists file. Create a build folder and use the command `cmake ..` and then`make` to get the executable.
+To run the code you can use the provided CMakeLists file. Create a `build` folder and use the command `cmake ..` and then`make` to get the executable.
 Run the program with the following command:
 
 `./main input output [-gray"r g b"] | [-gaussian"seperate kSize border"] | [-sobel"kSize gausskSize threshold gradient"]`
@@ -57,4 +57,4 @@ Notice that the main prgramm only supports .bmp files with color depth = 24. If 
 |:---:|:---:|:---:|:---:|
 ![](data/berries.bmp)|![](data/berries_sobel5x5.bmp)|![](data/berries_sobel7x7.bmp)|![](data/berries_sobel5x5_gradient.bmp)|
 
-![](data/gradientcircle.png| width=100)
+![](data/gradientcircle.png)
