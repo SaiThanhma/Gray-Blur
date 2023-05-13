@@ -11,11 +11,11 @@ void gray(const T *img_in, size_t width, size_t height, size_t channels, T *img_
 {
     size_t size = width * height * channels;
     T avg;
-    for(size_t i = 0; i < size; i+=channels){
+    
+    for(size_t  i = 0; i < size - channels + 1; i+=channels){ 
         avg = static_cast<T>(img_in[i] * a + img_in[i + 1] * b + img_in[i + 2] * c);
-        img_out[i + 0] = avg;
+        img_out[i] = avg;
         img_out[i + 1] = avg;
         img_out[i + 2] = avg;
     }
-    
 }
