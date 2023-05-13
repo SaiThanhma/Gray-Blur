@@ -19,7 +19,7 @@ which differ in perfemance. The first one applies the kernel on an image as usua
 ## Sobel operator
 In order to get a proper result the image will be prepcoessed with a gray filter and a gaussian blur. The function then applies a convolution with the Sobel kernel in the x-Direction and in the y-direction. The magnitude can be calculated by pythagoras theorem and the gradient by the arctan, which will show an edge with corresponding angel/orientation.
 
-The following image is representing the gradient angle
+The following image is representing the gradient angle this function:
 
 <img src="data/gradientcircle.png" width="150" height="150">
 
