@@ -49,4 +49,4 @@ Run the program with the following command:
 ### Sobel operator
 |Original|ksize = 5|ksize = 7|Gradient|
 |:---:|:---:|:---:|:---:|
-![](data/lena.bmp)|![](data/lena_sobel5x5.bmp)|![](data/lena_sobel7x7.bmp)|![](data/lena_sobel5x5_gradient.bmp)|
+![](data/lena.bmp)|![](data/lena_sobel5x5.bmp)|![](data/lena_sobel7x7.bmp)|![](data/lena_sobel_5x5_gradient.bmp)|
