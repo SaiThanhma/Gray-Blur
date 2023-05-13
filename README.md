@@ -23,7 +23,7 @@ In order to get a proper result the image will be prepcoessed with a gray filter
 To run the code you can use CMake with the provided CMakeLists file. Create a build folder and use the command `cmake ..`to get the executable.
 Run the program with the following command:
 
-`./main input output [-gray\"r g b\"] | [-gaussian\"seperate kSize border\"] | [-sobel\"kSize gausskSize threshold gradient\"]"`
+`./main input output [-gray"r g b"] | [-gaussian"seperate kSize border"] | [-sobel"kSize gausskSize threshold gradient"]`
 
 - input: input file .bmp as extension.
 - output: output file with .bmp as extension.
