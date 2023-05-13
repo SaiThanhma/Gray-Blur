@@ -16,6 +16,13 @@ std::unique_ptr<Bitmap> readBmpFile(const char *path)
         return nullptr;
     }
 
+    struct stat s;
+    if (stat(path, &s) < 0)
+    {
+        std::perror("Stat error");
+        return nullptr;
+    }
+
     std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>();
 
     fread(&(bitmap->bfType), 1, 2, file);
@@ -35,12 +42,40 @@ std::unique_ptr<Bitmap> readBmpFile(const char *path)
 
     fread(&(bitmap->biHeight), 1, 4, file);
 
+    if (bitmap->biHeight < 0)
+    {
+        bitmap->biHeight = -bitmap->biHeight;
+        bitmap->topdown = true;
+    }
+    else
+    {
+        bitmap->topdown = false;
+    }
+
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(static_cast<size_t>(bitmap->biWidth * bitmap->biHeight * 3));
     fseek(file, bitmap->bfOffBits, SEEK_SET);
     fread(data.get(), sizeof(uint8_t), static_cast<size_t>(bitmap->biWidth * bitmap->biHeight * 3), file);
     bitmap->data = std::move(data);
 
     bitmap->size = bitmap->biHeight * bitmap->biWidth * 3;
+/*
+    if (static_cast<long long int>(bitmap->size + bitmap->bfOffBits) != s.st_size)
+    {
+        std::perror("I dont know why but this picture is not supported because it is bigger than the expected size");
+        fclose(file);
+        return nullptr;
+    }
+*/
+    uint16_t colordepth;
+    fseek(file, 28, SEEK_SET);
+    fread(&(colordepth), 1, 2, file);
+
+    if (colordepth != 24)
+    {   
+        std::perror("Only 24 bit color depth supported");
+        fclose(file);
+        return nullptr;
+    }
 
     fclose(file);
 
@@ -74,7 +109,7 @@ bool writeBmpFile(const char *path, uint8_t *buffer, size_t size, long int offse
     return true;
 }
 
-bool copyBitmapHeader(const char* in, const char* out)
+bool copyBitmapHeader(const char *in, const char *out)
 {
     FILE *infile = std::fopen(in, "r");
     FILE *outfile = std::fopen(out, "w");
