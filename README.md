@@ -34,4 +34,4 @@ Run the program with the following command:
 
 |Original|Gray|Original|Gray|
 |:---:|:---:|:---:|:---:|:---:|:---:|
-![](data/lena.bmp)|![](data/lena_gray.bmp)|![](data/beeries.bmp)|![](data/beeries_gray.bmp)|
+![](data/lena.bmp)|![](data/lena_gray.bmp)|![](data/berries.bmp)|![](data/berries_gray.bmp)|
