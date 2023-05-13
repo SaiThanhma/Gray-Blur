@@ -11,20 +11,20 @@
 static void usage(char *argv0)
 {
     std::cout
-        << "Usage: " << argv0 << " input output [-gray [\"r g b\"]] [-gaussian [\"seperate kSize border\"]] [-sobel [\"kSize gausskSize threshold gradient\"]]"
+        << "Usage: " << argv0 << " input output [-gray\"r g b\"] | [-gaussian\"seperate kSize border\"] | [-sobel\"kSize gausskSize threshold gradient\"]"
         << "\n"
         << "input: input file .bmp as extension."
         << "\n"
-        << "output: output file with .bmp as extension, otherwise a .bmp file will be created."
+        << "output: output file with .bmp as extension."
         << "\n"
         << "gray: grayscale filter with \"r g b\" as weighted parameters. 0 <= r, b, g <= 1 with r + g + b = 1. Default is r = 0.3, g = 0.59, b = 0.11 (luma grayscaling)"
         << "\n"
-        << "gaussian: gaussian filter with \"v k b\" If seperate = 0 then the image will be processed once with a kSize xkSize Kernel in quadratic time, "
-        << "otherwise image will be processed twice with a 1 x kSize and kSize x 1 Kernel in linear time. kSize has to be positive and odd. "
+        << "gaussian: gaussian filter with \"v k b\" If seperate = 0 then the image will be processed once with a kSize x kSize Kernel in quadratic time, "
+        << "otherwise image will be processed twice with a 1 x kSize and a kSize x 1 Kernel in linear time. kSize has to be positive and odd. "
         << "border can be chosen between 0 | 1 | 2 | 3, 0 = WO, 1 = EXTEND 2 = MIRROR, 3 = WRAP. "
         << "Default is seperate = 1, k = 3, border = EXTEND"
         << "\n"
-        << "sobel: sobel operator with a kSize x kSize Kernel, with kSize >= 3 and odd. The image will be preprocessed with a gausskSize x gausskSize gaussian Filter. "
+        << "sobel: sobel operator with a kSize x kSize Kernel, with kSize >= 3 and odd. The image will be preprocessed with a grayfilter and a gausskSize x gausskSize gaussian Filter. "
         << "The threshold is a number for an edge to be recognized between 0 <= threshold <= 255 (ideally about 150). If gradient = 1 then the gradient (orientation) will be also shown in colors "
         << "Default is kSize = 5, gausskSize = 3, threshold = 150, gradient = 0"
         << std::endl;
@@ -43,6 +43,7 @@ int main(int argc, char **argv)
         {"gray", optional_argument, 0, 'g'},
         {"gaussian", optional_argument, 0, 'b'},
         {"sobel", optional_argument, 0, 's'},
+        {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}};
 
     IOhandler iohandler;
@@ -53,7 +54,7 @@ int main(int argc, char **argv)
     bool blurf = false;
     bool sobelf = false;
 
-    while ((opt = getopt_long(argc, argv, "g::b::s::", long_options, &longindex)) != EOF)
+    while ((opt = getopt_long(argc, argv, "hg::b::s::", long_options, &longindex)) != EOF)
     {
         switch (opt)
         {
@@ -62,6 +63,11 @@ int main(int argc, char **argv)
             if (optarg && !iohandler.grayHandler(optarg))
             {
                 usage(argv[0]);
+                return 1;
+            }
+            if (grayf || blurf || sobelf)
+            {
+                std::cout << "Use only one flag to to process an image" << std::endl;
                 return 1;
             }
             grayf = true;
@@ -74,6 +80,11 @@ int main(int argc, char **argv)
                 usage(argv[0]);
                 return 1;
             }
+            if (grayf || blurf || sobelf)
+            {
+                std::cout << "Use only one flag to to process an image" << std::endl;
+                return 1;
+            }
             blurf = true;
             break;
         }
@@ -84,8 +95,18 @@ int main(int argc, char **argv)
                 usage(argv[0]);
                 return 1;
             }
+            if (grayf || blurf || sobelf)
+            {
+                std::cout << "Use only one flag to to process an image" << std::endl;
+                return 1;
+            }
             sobelf = true;
             break;
+        }
+        case 'h':
+        {   
+            usage(argv[0]);
+            return 0;
         }
         default:
         {
@@ -124,19 +145,17 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    std::shared_ptr<uint8_t[]> odata = std::make_unique<uint8_t[]>(img_in->biHeight * img_in->biWidth * 3);
-    
+    std::unique_ptr<uint8_t[]> odata = std::make_unique<uint8_t[]>(img_in->biHeight * img_in->biWidth * 3);
+
     if (grayf)
     {
         auto startgray = std::chrono::steady_clock::now();
 
-        gray<uint8_t>(img_in->data.get(), img_in->biWidth, img_in->biHeight, 3, odata.get());
+        gray<uint8_t>(img_in->data.get(), img_in->biWidth, img_in->biHeight, 3, odata.get(), iohandler.r, iohandler.g, iohandler.b);
 
         auto endgray = std::chrono::steady_clock::now();
 
         std::cout << "Time for gray: " << std::chrono::duration_cast<std::chrono::milliseconds>(endgray - startgray).count() << "[µs]" << std::endl;
-
-        img_in->data = odata;
     }
     if (blurf)
     {
@@ -150,8 +169,6 @@ int main(int argc, char **argv)
             auto endblur = std::chrono::steady_clock::now();
 
             std::cout << "Time for seperate blur: " << std::chrono::duration_cast<std::chrono::milliseconds>(endblur - startblur).count() << "[µs]" << std::endl;
-
-            img_in->data = odata;
         }
         else
         {
@@ -163,10 +180,7 @@ int main(int argc, char **argv)
             auto endblur = std::chrono::steady_clock::now();
 
             std::cout << "Time for blur: " << std::chrono::duration_cast<std::chrono::milliseconds>(endblur - startblur).count() << "[µs]" << std::endl;
-
         }
-
-        img_in->data = odata;
     }
     if (sobelf)
     {
@@ -178,11 +192,10 @@ int main(int argc, char **argv)
         auto endsobel = std::chrono::steady_clock::now();
 
         std::cout << "Time for sobel: " << std::chrono::duration_cast<std::chrono::milliseconds>(endsobel - startsobel).count() << "[µs]" << std::endl;
+    }
 
-        img_in->data = odata;
-    }   
-
-    if(!writeBmpFile(output.data(), odata.get(), img_in->size, img_in->bfOffBits, SEEK_SET)){
+    if (!writeBmpFile(output.data(), odata.get(), img_in->size, img_in->bfOffBits, SEEK_SET))
+    {
         return 1;
     }
     return 0;
