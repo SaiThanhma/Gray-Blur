@@ -20,7 +20,7 @@ which differ in perfemance. The first one applies the kernel on an image as usua
 In order to get a proper result the image will be prepcoessed with a gray filter and a gaussian blur. The function then applies a convolution with the Sobel kernel in the x-Direction and in the y-direction. The magnitude can be calculated by pythagoras theorem and the gradient by the arctan, which will show an edge with corresponding angel/orientation
 
 # Running the code
-To run the code you can use CMake with the provided CMakeLists file. Create a build folder and use the command `cmake ..`to get the executable.
+To run the code you can use the provided CMakeLists file. Create a build folder and use the command `cmake ..` and then`make` to get the executable.
 Run the program with the following command:
 
 `./main input output [-gray"r g b"] | [-gaussian"seperate kSize border"] | [-sobel"kSize gausskSize threshold gradient"]`
@@ -29,6 +29,8 @@ Run the program with the following command:
 - output: output file with .bmp as extension.
 - gaussian: gaussian filter with "seperate" "kSize" "border" as parameter. If seperate = 0 then the image will be processed once with a kSize x kSize Kernel, otherwise image will be processed twice with a 1 x kSize and a kSize x 1 kernel. Border can be chosen between 0 | 1 | 2 | 3, 0 = WO, 1 = EXTEND 2 = MIRROR, 3 = WRAP. 
 - sobel: sobel operator with a kSize x kSize Kernel. The image will be preprocessed with a grayfilter and a gausskSize x gausskSize gaussian Filter. The threshold is a number for an edge to be recognized between 0 <= threshold <= 255 (ideally about 150). If gradient = 1 then the gradient (orientation) will be also shown in colors.
+
+Notice that the main prgramm only supports .bmp files with color depth = 24. If you the following error: `constexpr function's return type 'Kernel' (aka 'vector<std::vector<float>>') is not a literal type` you should us a different compiler like gcc 12
 
 ## Results
 
