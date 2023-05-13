@@ -50,3 +50,7 @@ Run the program with the following command:
 |Original|ksize = 5|ksize = 7|Gradient|
 |:---:|:---:|:---:|:---:|
 ![](data/lena.bmp)|![](data/lena_sobel5x5.bmp)|![](data/lena_sobel7x7.bmp)|![](data/lena_sobel_5x5_gradient.bmp)|
+
+|Original|ksize = 5|ksize = 7|Gradient|
+|:---:|:---:|:---:|:---:|
+![](data/beeries.bmp)|![](data/beeries_sobel5x5.bmp)|![](data/beeries_sobel7x7.bmp)|![](data/beeries_sobel_5x5_gradient.bmp)|
