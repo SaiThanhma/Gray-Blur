@@ -31,6 +31,7 @@ Run the program with the following command:
 - sobel: sobel operator with a kSize x kSize Kernel. The image will be preprocessed with a grayfilter and a gausskSize x gausskSize gaussian Filter. The threshold is a number for an edge to be recognized between 0 <= threshold <= 255 (ideally about 150). If gradient = 1 then the gradient (orientation) will be also shown in colors.
 
 ## Results
+
 ### Gray
 |Original|Luminance|Original|Luminance|
 |:---:|:---:|:---:|:---:|
@@ -44,3 +45,8 @@ Run the program with the following command:
 |Original|ksize = 5|ksize = 17|ksize = 51|
 |:---:|:---:|:---:|:---:|
 ![](data/berries.bmp)|![](data/berries_blur5x5.bmp)|![](data/berries_blur17x17.bmp)|![](data/berries_blur51x51.bmp)|
+
+### Sobel operator
+|Original|ksize = 5|ksize = 7|Gradient|
+|:---:|:---:|:---:|:---:|
+![](data/lena.bmp)|![](data/lena_sobel5x5.bmp)|![](data/lena_sobel7x7.bmp)|![](data/lena_sobel5x5_gradient.bmp)|
