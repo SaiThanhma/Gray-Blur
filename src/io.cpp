@@ -35,8 +35,10 @@ bool IOhandler::isInt(std::string string)
     return (*p) == '\0';
 }
 
-bool IOhandler::pathHandler(std::string input){
-    if(input.empty()){
+bool IOhandler::pathHandler(std::string input)
+{
+    if (input.empty())
+    {
         return false;
     }
 
@@ -213,4 +215,3 @@ bool IOhandler::sobelHandler(std::string input)
     }
     return true;
 }
-
