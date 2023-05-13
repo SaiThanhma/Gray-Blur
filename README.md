@@ -33,7 +33,7 @@ Run the program with the following command:
 ## Results
 
 |Original|Gray|Original|Gray|
-|:---:|:---:|:---:|:---:|:---:|:---:|
+|:---:|:---:|:---:|:---:|
 ![](data/lena.bmp)|![](data/lena_gray.bmp)|![](data/berries.bmp)|![](data/berries_gray.bmp)|
 
 
