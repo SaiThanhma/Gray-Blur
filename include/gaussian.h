@@ -9,19 +9,19 @@
 using Kernel = std::vector<std::vector<float>>;
 
 template <typename T>
-void gaussianBlur(const T *img_in, int width, int height, int channels, T *img_out, int ksize, Border border);
+void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, size_t ksize, Border border);
 
 template <typename T>
-void gaussianBlurSeparate(const T *img_in, int width, int height, int channels, T *img_out, int ksize, Border border);
+void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, size_t ksize, Border border);
 
-constexpr Kernel gaussianKernel(int kernelheight, int kernelwidth, float sigma);
+constexpr Kernel gaussianKernel(size_t kernelheight, size_t kernelwidth, float sigma);
 
-constexpr float sigmaToksize(int ksize);
+constexpr float sigmaToksize(size_t ksize);
 
-constexpr float hg(int i, int j, int meani, int meanj, float sigma);
+constexpr float hg(size_t i, size_t j, size_t meani, size_t meanj, float sigma);
 
 template <typename T>
-void gaussianBlur(const T *img_in, int width, int height, int channels, T *img_out, int ksize, Border border)
+void gaussianBlur(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, size_t ksize, Border border)
 {
    float sigma = sigmaToksize(ksize);
    auto kernel = gaussianKernel(ksize, ksize, sigma);
@@ -29,7 +29,7 @@ void gaussianBlur(const T *img_in, int width, int height, int channels, T *img_o
 }
 
 template <typename T>
-void gaussianBlurSeparate(const T *img_in, int width, int height, int channels, T *img_out, int ksize, Border border)
+void gaussianBlurSeparate(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, size_t ksize, Border border)
 {  
     float sigma = sigmaToksize(ksize);
     std::unique_ptr<T[]> tmp = std::make_unique<T[]>(width * height * channels);
@@ -39,20 +39,20 @@ void gaussianBlurSeparate(const T *img_in, int width, int height, int channels, 
     convolution<T>(tmp.get(), width, height, channels, img_out, kernelvertical, border);
 }
 
-constexpr Kernel gaussianKernel(int kernelheight, int kernelwidth, float sigma)
+constexpr Kernel gaussianKernel(size_t kernelheight, size_t kernelwidth, float sigma)
 {
     Kernel kernel;
     kernel.reserve(kernelheight);
     float sum = 0.0;
     float tmp = 0.0;
-    int meani = kernelheight / 2;
-    int meanj = kernelwidth / 2;
+    size_t meani = kernelheight / 2;
+    size_t meanj = kernelwidth / 2;
 
-    for (int i = 0; i < kernelheight; ++i)
+    for (size_t i = 0; i < kernelheight; ++i)
     {
         std::vector<float> sub;
         sub.reserve(kernelwidth);
-        for (int j = 0; j < kernelwidth; ++j)
+        for (size_t j = 0; j < kernelwidth; ++j)
         {
             tmp = hg(i, j, meani, meanj, sigma);
             sum += tmp;
@@ -63,9 +63,9 @@ constexpr Kernel gaussianKernel(int kernelheight, int kernelwidth, float sigma)
 
     if (sum != 0.0)
     {
-        for (int i = 0; i < kernelheight; ++i)
+        for (size_t i = 0; i < kernelheight; ++i)
         {
-            for (int j = 0; j < kernelwidth; ++j)
+            for (size_t j = 0; j < kernelwidth; ++j)
             {
                 kernel.at(i).at(j) /= sum;
             }
@@ -75,12 +75,12 @@ constexpr Kernel gaussianKernel(int kernelheight, int kernelwidth, float sigma)
     return kernel;
 }
 
-constexpr float sigmaToksize(int ksize)
+constexpr float sigmaToksize(size_t ksize)
 {
-    return static_cast<float>(0.3 * ((ksize - 1) * 0.5 - 1) + 0.8);
+    return static_cast<float>(0.3 * ((static_cast<float>(ksize) - 1) * 0.5 - 1) + 0.8);
 }
 
-constexpr float hg(int i, int j, int meani, int meanj, float sigma)
+constexpr float hg(size_t i, size_t j, size_t meani, size_t meanj, float sigma)
 {
-    return static_cast<float>(std::exp(-0.5 * ((i - meani) * (i - meani) + (j - meanj) * (j - meanj)) / (sigma * sigma)));
+    return static_cast<float>(std::exp(-0.5 * static_cast<float>(((i - meani) * (i - meani) + (j - meanj) * (j - meanj))) / (sigma * sigma)));
 }

@@ -9,9 +9,9 @@ void gray(const T *img_in, size_t width, size_t height, size_t channels, T *img_
 template<typename T>
 void gray(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, float a, float b, float c)
 {
-    int size = width * height * channels;
+    size_t size = width * height * channels;
     T avg;
-    for(int i = 0; i < size; i+=channels){
+    for(size_t i = 0; i < size; i+=channels){
         avg = static_cast<T>(img_in[i] * a + img_in[i + 1] * b + img_in[i + 2] * c);
         img_out[i + 0] = avg;
         img_out[i + 1] = avg;

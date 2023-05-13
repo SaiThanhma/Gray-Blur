@@ -174,8 +174,6 @@ int main(int argc, char **argv)
 
         auto endsobel = std::chrono::steady_clock::now();
 
-        float ressobel = std::chrono::duration_cast<std::chrono::seconds>(endsobel - startsobel).count();
-
         std::cout << "Time for sobel: " << std::chrono::duration_cast<std::chrono::milliseconds>(endsobel - startsobel).count() << "[µs]" << std::endl;
     }
 

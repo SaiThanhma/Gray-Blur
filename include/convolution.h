@@ -116,8 +116,8 @@ void convolution(const T *img_in, size_t width, size_t height, size_t channels, 
 template <typename T>
 void convolutionWO(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel)
 {
-    int kernelheight = kernel.size();
-    int kernelwidth = kernel.at(0).size();
+    int kernelheight = static_cast<int>(kernel.size());
+    int kernelwidth = static_cast<int>(kernel.at(0).size());
 
     int kernelheightradius = (kernelheight - 1) / 2;
     int kernelwidthradius = (kernelwidth - 1) / 2;
@@ -128,9 +128,9 @@ void convolutionWO(const T *img_in, size_t width, size_t height, size_t channels
     int startx = -kernelwidthradius;
     int endx = kernelwidthradius;
 
-    for (int i = kernelheightradius; i < height - kernelheightradius; ++i)
+    for (int i = kernelheightradius; i < static_cast<int>(height) - kernelheightradius; ++i)
     {
-        for (int j = kernelwidthradius; j < width - kernelwidthradius; ++j)
+        for (int j = kernelwidthradius; j < static_cast<int>(width) - kernelwidthradius; ++j)
         {
             for (int k = 0; k < 3; ++k)
             {
@@ -151,8 +151,8 @@ void convolutionWO(const T *img_in, size_t width, size_t height, size_t channels
 template <typename T>
 void borderHandling(const T *img_in, size_t width, size_t height, size_t channels, T *img_out, const Kernel &kernel, indexCall index)
 {
-    int kernelheight = kernel.size();
-    int kernelwidth = kernel.at(0).size();
+    int kernelheight = static_cast<int>(kernel.size());
+    int kernelwidth = static_cast<int>(kernel.at(0).size());
 
     int kernelheightradius = (kernelheight - 1) / 2;
     int kernelwidthradius = (kernelwidth - 1) / 2;
@@ -165,16 +165,16 @@ void borderHandling(const T *img_in, size_t width, size_t height, size_t channel
 
     for (int i = 0; i < kernelheightradius; ++i)
     {
-        for (int j = 0; j < width; ++j)
+        for (int j = 0; j < static_cast<int>(width); ++j)
         {
-            for (int k = 0; k < channels; ++k)
+            for (int k = 0; k < static_cast<int>(channels); ++k)
             {
                 float sum = 0;
                 for (int l = starty; l <= endy; ++l)
                 {
                     for (int m = startx; m <= endx; ++m)
                     {
-                        Coordinates c = index(i + l, j + m, height - 1, width - 1);
+                        Coordinates c = index(i + l, j + m, static_cast<int>(height - 1), static_cast<int>(width - 1));
                         sum += img_in[(c.first * width + c.second) * channels + k] * kernel.at(l + kernelheightradius).at(m + kernelwidthradius);
                     }
                 }
@@ -183,18 +183,18 @@ void borderHandling(const T *img_in, size_t width, size_t height, size_t channel
         }
     }
 
-    for (int i = (height - kernelheightradius); i < height; ++i)
+    for (int i = (static_cast<int>(height) - kernelheightradius); i < static_cast<int>(height); ++i)
     {
-        for (int j = 0; j < width; ++j)
+        for (int j = 0; j < static_cast<int>(width); ++j)
         {
-            for (int k = 0; k < channels; ++k)
+            for (int k = 0; k < static_cast<int>(channels); ++k)
             {
                 float sum = 0;
                 for (int l = starty; l <= endy; ++l)
                 {
                     for (int m = startx; m <= endx; ++m)
                     {
-                        Coordinates c = index(i + l, j + m, height - 1, width - 1);
+                        Coordinates c = index(i + l, j + m, static_cast<int>(height - 1), static_cast<int>(width - 1));
                         sum += img_in[(c.first * width + c.second) * channels + k] * kernel.at(l + kernelheightradius).at(m + kernelwidthradius);
                     }
                 }
@@ -203,18 +203,18 @@ void borderHandling(const T *img_in, size_t width, size_t height, size_t channel
         }
     }
 
-    for (int i = kernelheightradius; i < (height - kernelheightradius); ++i)
+    for (int i = kernelheightradius; i < (static_cast<int>(height) - kernelheightradius); ++i)
     {
         for (int j = 0; j < kernelwidthradius; ++j)
         {
-            for (int k = 0; k < channels; ++k)
+            for (int k = 0; k < static_cast<int>(channels); ++k)
             {
                 float sum = 0;
                 for (int l = starty; l <= endy; ++l)
                 {
                     for (int m = startx; m <= endx; ++m)
                     {
-                        Coordinates c = index(i + l, j + m, height - 1, width - 1);
+                        Coordinates c = index(i + l, j + m, static_cast<int>(height - 1), static_cast<int>(width - 1));
                         sum += img_in[(c.first * width + c.second) * channels + k] * kernel.at(l + kernelheightradius).at(m + kernelwidthradius);
                     }
                 }
@@ -223,18 +223,18 @@ void borderHandling(const T *img_in, size_t width, size_t height, size_t channel
         }
     }
 
-    for (int i = kernelheightradius; i < (height - kernelheightradius); ++i)
+    for (int i = kernelheightradius; i < (static_cast<int>(height) - kernelheightradius); ++i)
     {
-        for (int j = width - kernelwidthradius; j < width; ++j)
+        for (int j = static_cast<int>(width) - kernelwidthradius; j < static_cast<int>(width); ++j)
         {
-            for (int k = 0; k < channels; ++k)
+            for (int k = 0; k < static_cast<int>(channels); ++k)
             {
                 float sum = 0;
                 for (int l = starty; l <= endy; ++l)
                 {
                     for (int m = startx; m <= endx; ++m)
                     {
-                        Coordinates c = index(i + l, j + m, height - 1, width - 1);
+                        Coordinates c = index(i + l, j + m, static_cast<int>(height - 1), static_cast<int>(width - 1));
                         sum += img_in[(c.first * width + c.second) * channels + k] * kernel.at(l + kernelheightradius).at(m + kernelwidthradius);
                     }
                 }
@@ -246,26 +246,26 @@ void borderHandling(const T *img_in, size_t width, size_t height, size_t channel
 
 constexpr Kernel convolution(const Kernel &a, const Kernel &b){
 
-    int aheight = a.size();
-    int awidth = a.at(0).size();
+    size_t aheight = a.size();
+    size_t awidth = a.at(0).size();
 
-    int bheight = b.size();
-    int bwidth = b.at(0).size();
+    size_t bheight = b.size();
+    size_t bwidth = b.at(0).size();
 
-    int kernelresultheight = aheight + bheight - 1;
-    int kernelresultwidth = awidth + bwidth - 1;
+    size_t kernelresultheight = aheight + bheight - 1;
+    size_t kernelresultwidth = awidth + bwidth - 1;
 
     Kernel res;
     res.reserve(kernelresultheight);
-    for(int j = 0; j < kernelresultheight; ++j){
+    for(size_t j = 0; j < kernelresultheight; ++j){
         std::vector<float> sub;
         sub.reserve(kernelresultwidth);
-        for(int k = 0; k <= kernelresultwidth ; ++k){
+        for(size_t k = 0; k <= kernelresultwidth ; ++k){
             float sum = 0;
             bool set = false;
-            for(int p = 0; p < aheight; ++p){
-                for(int q = 0; q < awidth; ++q){
-                    if(j - p < 0 || j - p >= bheight || k - q < 0 || k - q >= bwidth) {
+            for(size_t p = 0; p < aheight; ++p){
+                for(size_t q = 0; q < awidth; ++q){
+                    if(static_cast<int>(j - p) < 0 || j - p >= bheight || static_cast<int>(k - q) < 0 || k - q >= bwidth) {
                         continue;
                     }
                     set = true;

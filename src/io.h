@@ -1,12 +1,13 @@
+#pragma once
 #include <string>
 #include <vector>
 #include <iostream>
 
 struct IOhandler
 {
-    float r = 0.3;
-    float g = 0.59;
-    float b = 0.11;
+    float r = 0.3f;
+    float g = 0.59f;
+    float b = 0.11f;
 
     bool seperate = true;
     int ksize = 3;
