@@ -12,7 +12,7 @@ struct Bitmap
     int32_t biWidth;
     int32_t biHeight;
     int32_t size;
-    std::shared_ptr<uint8_t[]> data;
+    std::unique_ptr<uint8_t[]> data;
 };
 
 std::unique_ptr<Bitmap> readBmpFile(const char* path);

@@ -35,10 +35,10 @@ std::unique_ptr<Bitmap> readBmpFile(const char *path)
 
     fread(&(bitmap->biHeight), 1, 4, file);
 
-    std::shared_ptr<uint8_t[]> data = std::make_shared<uint8_t[]>(static_cast<size_t>(bitmap->biWidth * bitmap->biHeight * 3));
+    std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(static_cast<size_t>(bitmap->biWidth * bitmap->biHeight * 3));
     fseek(file, bitmap->bfOffBits, SEEK_SET);
     fread(data.get(), sizeof(uint8_t), static_cast<size_t>(bitmap->biWidth * bitmap->biHeight * 3), file);
-    bitmap->data = data;
+    bitmap->data = std::move(data);
 
     bitmap->size = bitmap->biHeight * bitmap->biWidth * 3;
 
