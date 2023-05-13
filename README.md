@@ -56,3 +56,5 @@ Notice that the main prgramm only supports .bmp files with color depth = 24. If 
 |Original|ksize = 5|ksize = 7|Gradient|
 |:---:|:---:|:---:|:---:|
 ![](data/berries.bmp)|![](data/berries_sobel5x5.bmp)|![](data/berries_sobel7x7.bmp)|![](data/berries_sobel5x5_gradient.bmp)|
+
+![](gradientcircle.png| width=100)
