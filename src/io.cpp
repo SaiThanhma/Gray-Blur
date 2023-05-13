@@ -3,9 +3,9 @@
 std::vector<std::string> IOhandler::splitstring(std::string string, std::string delimiter)
 {
     std::vector<std::string> res;
-    int pos = 0;
+    size_t pos = 0;
     std::string token;
-    while ((pos = string.find(delimiter)) != std::string::npos)
+    while ((pos = static_cast<size_t>(string.find(delimiter))) != std::string::npos)
     {
         token = string.substr(0, pos);
         res.emplace_back(token);
@@ -56,14 +56,14 @@ bool IOhandler::grayHandler(std::string input)
     {
         return false;
     }
-    for (int i = 0; i < svec.size(); ++i)
+    for (size_t i = 0; i < svec.size(); ++i)
     {
 
         if (!isFloat(svec.at(i).c_str()))
         {
             return false;
         }
-        float tmp = std::atof(svec.at(i).c_str());
+        float tmp = static_cast<float>(std::atof(svec.at(i).c_str()));
 
         if (tmp < 0.f || tmp > 1.f)
         {
@@ -112,7 +112,7 @@ bool IOhandler::gaussianHandler(std::string input)
         return false;
     }
 
-    for (int i = 0; i < svec.size(); ++i)
+    for (size_t i = 0; i < svec.size(); ++i)
     {
         if (!isInt(svec.at(i).c_str()))
         {
@@ -163,7 +163,7 @@ bool IOhandler::sobelHandler(std::string input)
         return false;
     }
 
-    for (int i = 0; i < svec.size(); ++i)
+    for (size_t i = 0; i < svec.size(); ++i)
     {
         if (!isInt(svec.at(i).c_str()))
         {

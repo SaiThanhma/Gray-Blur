@@ -15,7 +15,7 @@ struct IOhandler
 
     int sobelkSize = 5;
     int gausskSize = 3;
-    int threshold = 45;
+    int threshold = 150;
     bool gradient = false;
 
     std::vector<std::string> splitstring(std::string string, std::string delimiter);

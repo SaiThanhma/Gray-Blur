@@ -25,8 +25,8 @@ static void usage(char *argv0)
         << "Default is seperate = 1, k = 3, border = EXTEND"
         << "\n"
         << "sobel: sobel operator with a kSize x kSize Kernel, with kSize >= 3 and odd. The image will be preprocessed with a gausskSize x gausskSize gaussian Filter. "
-        << "The threshold is a number for an edge to be recognized between 0 <= threshold <= 255 (ideally about 45). If gradient = 1 then the gradient (orientation) will be also shown in colors "
-        << "Default is kSize = 5, gausskSize = 3, threshold = 45, gradient = 0"
+        << "The threshold is a number for an edge to be recognized between 0 <= threshold <= 255 (ideally about 150). If gradient = 1 then the gradient (orientation) will be also shown in colors "
+        << "Default is kSize = 5, gausskSize = 3, threshold = 150, gradient = 0"
         << std::endl;
 }
 
@@ -124,7 +124,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    std::unique_ptr<uint8_t[]> odata = std::make_unique<uint8_t[]>(img_in->biHeight * img_in->biWidth * 3);
+    std::shared_ptr<uint8_t[]> odata = std::make_unique<uint8_t[]>(img_in->biHeight * img_in->biWidth * 3);
+    
     if (grayf)
     {
         auto startgray = std::chrono::steady_clock::now();
@@ -135,7 +136,7 @@ int main(int argc, char **argv)
 
         std::cout << "Time for gray: " << std::chrono::duration_cast<std::chrono::milliseconds>(endgray - startgray).count() << "[µs]" << std::endl;
 
-        img_in->data = std::move(odata);
+        img_in->data = odata;
     }
     if (blurf)
     {
@@ -149,6 +150,8 @@ int main(int argc, char **argv)
             auto endblur = std::chrono::steady_clock::now();
 
             std::cout << "Time for seperate blur: " << std::chrono::duration_cast<std::chrono::milliseconds>(endblur - startblur).count() << "[µs]" << std::endl;
+
+            img_in->data = odata;
         }
         else
         {
@@ -163,23 +166,24 @@ int main(int argc, char **argv)
 
         }
 
-        img_in->data = std::move(odata);
+        img_in->data = odata;
     }
     if (sobelf)
     {
 
         auto startsobel = std::chrono::steady_clock::now();
 
-        sobel<uint8_t>(img_in->data.get(), img_in->biWidth, img_in->biHeight, 3, odata.get());
+        sobel<uint8_t>(img_in->data.get(), img_in->biWidth, img_in->biHeight, 3, odata.get(), iohandler.sobelkSize, iohandler.gausskSize, iohandler.threshold, iohandler.gradient);
 
         auto endsobel = std::chrono::steady_clock::now();
 
         std::cout << "Time for sobel: " << std::chrono::duration_cast<std::chrono::milliseconds>(endsobel - startsobel).count() << "[µs]" << std::endl;
-    }
+
+        img_in->data = odata;
+    }   
 
     if(!writeBmpFile(output.data(), odata.get(), img_in->size, img_in->bfOffBits, SEEK_SET)){
         return 1;
     }
-
     return 0;
 }
