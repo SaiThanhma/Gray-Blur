@@ -3,8 +3,16 @@ A simple image processing program, which includes grayscaling, gaussian blur, an
 These filters as well as the kernel convolution are fully implemented in the header files.
 
 ## Kernel Convolution
-First the function convolutes the image without the edges. Then it processes them depending on following options; these options for edge handling are "Extend", "Wrap", "Mirror" or "Ignore".
-
+First the function convolutes the image without the edges. Then it processes them depending on following options:
+```c++
+enum Border
+{
+    WO, //ignore border
+    EXTEND,
+    MIRROR,
+    WRAP,
+};
+```
 ## Gaussian Blur
 There are two gaussian blur functions: 
 ```c++
