@@ -42,7 +42,7 @@ Run the program with the following command:
 - gaussian: gaussian filter with "seperate" "kSize" "border" as parameter. If seperate = 0 then the image will be processed once with a kSize x kSize Kernel, otherwise the image will be processed twice with a 1 x kSize and a kSize x 1 kernel. Border can be chosen between 0 | 1 | 2 | 3, where 0 = WO, 1 = EXTEND 2 = MIRROR, 3 = WRAP. 
 - sobel: sobel operator takes a kSize x kSize Kernel. The image will be preprocessed with a grayfilter and a gausskSize x gausskSize gaussian Filter. The threshold is a scalable number that reduces the amount of noise in the image. The range of the threshold can be set between 0 <= threshold <= 255 (ideally about 150). If gradient = 1 then the gradient (orientation) will be also shown in colors.
 
-Notice that the main prgramm only supports .bmp files with color depth = 24. Furthermore, if get you the following error: `constexpr function's return type 'Kernel' (aka 'vector<std::vector<float>>') is not a literal type` you should use a different compiler like gcc 12
+If get you the following error: `constexpr function's return type 'Kernel' (aka 'vector<std::vector<float>>') is not a literal type` you should use a different compiler like gcc 12
 
 ## Results
 
