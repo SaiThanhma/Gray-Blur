@@ -1,6 +1,6 @@
 # Image-Processing
 A simple image processing program, which includes grayscaling, gaussian blur, and Sobel operator.
-These filters as well as the kernel convolution are fully implemented in the header files.
+These filters as well as the kernel convolution are fully implemented in the header files. The code uses [stb](https://github.com/nothings/stb) for image manipulation. 
 
 ## Kernel Convolution
 First the function convolutes the image without the edges. Then it processes them depending on following options:
@@ -37,8 +37,8 @@ Run the program with the following command:
 
 `./main input output [-gray"r g b"] | [-gaussian"seperate kSize border"] | [-sobel"kSize gausskSize threshold gradient"]`
 
-- input: input file .bmp as extension.
-- output: output file with .bmp as extension.
+- input: input file with [.jpg, | .png | .bmp] as possible extension.
+- output: output file with [.jpg, | .png | .bmp] as possible extension.
 - gaussian: gaussian filter with "seperate" "kSize" "border" as parameter. If seperate = 0 then the image will be processed once with a kSize x kSize Kernel, otherwise the image will be processed twice with a 1 x kSize and a kSize x 1 kernel. Border can be chosen between 0 | 1 | 2 | 3, where 0 = WO, 1 = EXTEND 2 = MIRROR, 3 = WRAP. 
 - sobel: sobel operator takes a kSize x kSize Kernel. The image will be preprocessed with a grayfilter and a gausskSize x gausskSize gaussian Filter. The threshold is a scalable number that reduces the amount of noise in the image. The range of the threshold can be set between 0 <= threshold <= 255 (ideally about 150). If gradient = 1 then the gradient (orientation) will be also shown in colors.
 
