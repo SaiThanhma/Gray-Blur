@@ -11,7 +11,7 @@
 #include <chrono>
 
 static void usage(char *argv0)
-
+{
     std::cout
         << "Usage: " << argv0 << " input output [-gray\"r g b\"] | [-gaussian\"seperate kSize border\"] | [-sobel\"kSize gausskSize threshold gradient\"]"
         << "\n"
@@ -135,6 +135,7 @@ int main(int argc, char **argv)
     Image<uint8_t> img{input};
     if (img.data)
     {
+        std::cout << "File not found" << std::endl;
     }
 
     if (img.width == 0 || img.height == 0)
@@ -159,7 +160,6 @@ int main(int argc, char **argv)
     {
         if (iohandler.seperate)
         {
-
             auto startblur = std::chrono::steady_clock::now();
 
             gaussianBlurSeparate<uint8_t>(img.data.get(), img.width, img.height, img.channels, odata.get(), iohandler.ksize, Border(iohandler.border));
@@ -170,7 +170,6 @@ int main(int argc, char **argv)
         }
         else
         {
-
             auto startblur = std::chrono::steady_clock::now();
 
             gaussianBlur<uint8_t>(img.data.get(), img.width, img.height, img.channels, odata.get(), iohandler.ksize, Border(iohandler.border));
@@ -182,7 +181,6 @@ int main(int argc, char **argv)
     }
     if (sobelf)
     {
-
         auto startsobel = std::chrono::steady_clock::now();
 
         sobel<uint8_t>(img.data.get(), img.width, img.height, img.channels, odata.get(), iohandler.sobelkSize, iohandler.gausskSize, iohandler.threshold, iohandler.gradient);

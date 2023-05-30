@@ -24,14 +24,15 @@ private:
 template <typename T>
 Image<T>::Image(std::string_view path) : path{path}, rawdata{stbi_load(path.data(), &width, &height, &channels, 0)}
 {
-    if (!rawdata)
-        throw std::runtime_error("File not found");
-    size = width * height * channels;
-    data = std::make_unique<T[]>(size);
-
-    for (int i = 0; i < size; ++i)
+    if (rawdata)
     {
-        data[i] = static_cast<T>(rawdata[i]);
+        size = width * height * channels;
+        data = std::make_unique<T[]>(size);
+
+        for (int i = 0; i < size; ++i)
+        {
+            data[i] = static_cast<T>(rawdata[i]);
+        }
     }
 }
 
